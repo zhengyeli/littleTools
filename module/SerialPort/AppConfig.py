@@ -10,8 +10,10 @@ class AppConfig:
 
     def __init__(self):
       self.ConfigFile = "setting.ini"          #配置文件路径
-      self.SendFileName = None        #发送配置文件名
-      self.DeviceFileName = None      #模拟设备数据文件名
+      self.SendFileName = "send.txt"        #发送配置文件名
+      self.DeviceFileName = "device.txt"      #模拟设备数据文件名
+
+      self.FirstConfig = "True"     #第一次使用Config
 
       self.PortName = ""            #串口号
       self.BaudRate = "115200"                #波特率
@@ -38,7 +40,18 @@ class AppConfig:
 
     # 读写配置参数
     def readConfig(self):           # 读取配置参数
-        set = QSettings(self.ConfigFile, None)
+
+        set = QSettings(self.ConfigFile, QSettings.Format.IniFormat)
+        set.beginGroup("FirstConfig")
+        self.FirstConfig = set.value("FirstConfig")
+        set.endGroup()
+        if self.FirstConfig == "True":
+            print("Config had been saved")
+        else:
+            print("config have not saved before")
+            self.FirstConfig = "True"
+            self.writeConfig()
+            return
 
         set.beginGroup("ComConfig")
         self.PortName = set.value("PortName", self.PortName)
@@ -64,18 +77,15 @@ class AppConfig:
         self.ServerPort = set.value("ServerPort", self.ServerPort)
         self.ListenPort = set.value("ListenPort", self.ListenPort)
         self.SleepTime = set.value("SleepTime", self.SleepTime)
-        self.AutoConnect = set.value("AutoConnect", self.AutoConnect)
+        self.AutoConnect = dict[set.value("AutoConnect", self.AutoConnect)]
         set.endGroup()
-
-        # 配置文件不存在或者不全则重新生成
-        file = QFile(self.ConfigFile)
-        if file.size() == 0:
-            self.writeConfig()
-        else:
-            return
-
+        
     def writeConfig(self):          # 写入配置参数
-        set = QSettings(self.ConfigFile, None)
+        set = QSettings(self.ConfigFile, QSettings.Format.IniFormat)
+
+        set.beginGroup("FirstConfig")
+        set.setValue("FirstConfig", self.FirstConfig)
+        set.endGroup()
 
         set.beginGroup("ComConfig")
         set.setValue("PortName", self.PortName)

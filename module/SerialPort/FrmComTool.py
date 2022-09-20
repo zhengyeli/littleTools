@@ -227,14 +227,11 @@ class FrmComTool(Ui_frmComTool):
             self.timerSave.setInterval(int(self.AppConfig.SaveInterval))
 
         self.AppConfig.Mode = self.ui.cboxMode.currentText()
-        self.AppConfig.ServerIP = self.ui.txtServerIP
-        self.AppConfig.ServerPort = self.ui.txtServerPort
-        self.AppConfig.ListenPort = self.ui.txtListenPort
+        self.AppConfig.ServerIP = self.ui.txtServerIP.text()
+        self.AppConfig.ServerPort = self.ui.txtServerPort.text()
+        self.AppConfig.ListenPort = self.ui.txtListenPort.text()
         self.AppConfig.SleepTime = self.ui.cboxSleepTime.currentText()
-        if self.ui.ckAutoConnect.isChecked():
-            self.AppConfig.AutoConnect = 1
-        else:
-            self.AppConfig.AutoConnect = 0
+        self.AppConfig.AutoConnect = self.ui.ckAutoConnect.isChecked()
 
         self.AppConfig.writeConfig()
 
