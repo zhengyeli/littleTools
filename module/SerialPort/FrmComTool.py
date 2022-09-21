@@ -1,10 +1,11 @@
 from distutils.util import strtobool
 
 from PyQt6 import QtSerialPort
-from PyQt6.QtCore import QSettings, QTimer, QIODevice, pyqtSignal
+from PyQt6.QtCore import QSettings, QTimer, QIODevice, pyqtSignal, QFile, QTextStream, QDateTime
+from PyQt6.QtGui import QFont
 from PyQt6.QtNetwork import QTcpSocket, QUdpSocket
 from PyQt6.QtSerialPort import QSerialPort, QSerialPortInfo
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QComboBox, QCheckBox
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QComboBox, QCheckBox, QFileDialog
 
 from module.SerialPort.AppConfig import AppConfig
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
@@ -65,9 +66,106 @@ class FrmComTool(Ui_frmComTool):
         # self.module_init()
         # self.ui = Ui_frmComTool(self.ui)
 
+    def comTool_btnStopShow_clicked(self):
+        if self.ui.btnStopShow.text() == "停止显示":
+            self.isShow = False
+            self.ui.btnStopShow.setText("开始显示")
+        else:
+            self.isShow = True
+            self.ui.btnStopShow.setText("停止显示")
+
+    def comTool_btnSendCount_clicked(self):
+        self.ui.btnSendCount.setText("发送 : 0 字节")
+
+    def comTool_btnReceiveCount_clicked(self):
+        self.ui.btnReceiveCount.setText("接受 : 0 字节")
+
+    def comTool_btnData_clicked(self):
+        qwidget = QWidget()
+        dir = QFileDialog.getOpenFileName(qwidget, "select file", "", None)
+        # fileName = "{0}/{1}".format("./", "send.txt")
+        file = QFile(dir[0])
+
+        if file.exists() is False:
+            return
+
+        if self.ui.btnData.text() == "管理数据":
+            self.ui.txtMain.setReadOnly(False)
+            self.ui.txtMain.clear()
+            file.open(QFile.OpenModeFlag.ReadOnly | QIODevice.OpenModeFlag.Text)
+            inputStream = QTextStream(file)
+            self.ui.txtMain.setText(inputStream.readAll())
+            file.close()
+            self.ui.btnData.setText("保存数据")
+        else:
+            self.ui.txtMain.setReadOnly(True)
+            file.open(QFile.OpenModeFlag.WriteOnly | QIODevice.OpenModeFlag.Text)
+            out = QTextStream(file)
+            out << self.ui.txtMain.toPlainText()
+            file.close()
+            self.ui.btnData.setText("管理数据")
+            # AppData::readSendData()
+
+    def comTool_btnClear_clicked(self):
+        self.ui.txtMain.clear()
+        self.ui.txtMain.setFontWeight(QFont.Weight.Bold)
+        self.ui.txtMain.insertPlainText("#")
+        self.ui.txtMain.setFontWeight(QFont.Weight.Normal)
+
+    def comTool_btnSendData(self):
+        str = self.ui.cboxData.currentText()
+        if str.isEmpty():
+            self.ui.cboxData.setFocus()
+            return
+
+        self.comTool_sendData(str)
+
+        if self.ui.ckAutoClear.isChecked():
+            self.ui.cboxData.setCurrentIndex(-1)
+            self.ui.cboxData.setFocus()
+
+    def comTool_sendData(self, string):
+        if self.comOk == False or self.com.isOpen() is False:
+            return
+        # 短信猫调试
+        if string.startsWith("AT"):
+            string += "\r"
+
+        if self.ui.ckHexSend.isChecked():
+            buffer = string
+        else:
+            buffer = string
+
+        self.com.write(buffer)
+        # append(0, buffer)
+        self.sendCount = self.sendCount + buffer.size()
+        self.ui.btnSendCount.setText("发送 : {} 字节".format(self.sendCount))
+
+    def comTool_saveData(self):
+        tempData = self.ui.txtMain.toPlainText()
+        if tempData == "":
+            return
+
+        now = QDateTime.currentDateTime()
+        name = now.toString("yyyy-MM-dd-HH-mm-ss")
+        fileName = "{0}/{1} {2}.txt".format("./", self.ui.cboxPortName.currentText(), name)
+        file = QFile(fileName)
+        file.open(QFile.OpenModeFlagWriteOnly | QIODevice.OpenModeFlag.Text)
+        out = QTextStream(file)
+        out << tempData
+        file.close()
+        # on_btnClear_clicked()
+
     def comTool_form_init(self):
         # 连接按键
         self.button_init()
+
+        self.ui.btnStopShow.clicked.connect(self.comTool_btnStopShow_clicked)
+        self.ui.btnSave.clicked.connect(self.comTool_saveData)
+        self.ui.btnReceiveCount.clicked.connect(self.comTool_btnReceiveCount_clicked)
+        self.ui.btnSendCount.clicked.connect(self.comTool_btnSendCount_clicked)
+        self.ui.btnData.clicked.connect(self.comTool_btnData_clicked)
+        self.ui.btnClear.clicked.connect(self.comTool_btnClear_clicked)
 
         # 添加显示参数
         Intervals = ["1", "10", "20", "50", "100", "200", "300", "500", "1000", "1500", "2000", "3000", "5000", "10000"]
@@ -81,11 +179,11 @@ class FrmComTool(Ui_frmComTool):
 
         self.timerSend = QTimer()
         self.timerSend.setInterval(100)
-        self.timerSend.timeout.connect(self.comTool_Data_readFromCom)
+        self.timerSend.timeout.connect(self.comTool_btnSendData)
 
         self.timerSave = QTimer()
         self.timerSave.setInterval(100)
-        self.timerSave.timeout.connect(self.comTool_Data_readFromCom)
+        self.timerSave.timeout.connect(self.comTool_saveData)
 
         self.tcpOk = False
         self.tcpsocket = QTcpSocket()
