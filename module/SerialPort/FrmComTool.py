@@ -2,8 +2,9 @@ from datetime import time
 from distutils.util import strtobool
 
 from PyQt6 import QtSerialPort, QtWidgets
-from PyQt6.QtCore import QSettings, QTimer, QIODevice, pyqtSignal, Qt, QByteArray, QDateTime, QFile, QTextStream
-from PyQt6.QtGui import QTextCursor, QColor, QFont
+from PyQt6.QtCore import QSettings, QTimer, QIODevice, pyqtSignal, Qt, QByteArray, QDateTime, QFile, QTextStream, \
+    QEvent, QObject
+from PyQt6.QtGui import QTextCursor, QColor, QFont, QKeyEvent
 from PyQt6.QtNetwork import QTcpSocket, QUdpSocket, QHostAddress
 from PyQt6.QtSerialPort import QSerialPort, QSerialPortInfo
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QComboBox, QCheckBox, QFileDialog
@@ -36,14 +37,16 @@ hotkey = [
 ]
 
 
-class FrmComTool(Ui_frmComTool):
+class FrmComTool(QObject, Ui_frmComTool):
     btn_list = None
     # 信号 . 发送到外面控件
     emit_open_com_successful = pyqtSignal()
 
     def __init__(self, ui):
+        super().__init__()
         self.isinputText = True
         self.currentCount = None
+        self.ui = Ui_frmComTool()  # 方便知道ui里的成员
         self.ui = ui
         self.com = QSerialPort()
         self.comOk = False
@@ -60,13 +63,51 @@ class FrmComTool(Ui_frmComTool):
         self.tcpOk = False
         self.tcpsocket = None
 
+        self.ui.txtMain.installEventFilter(self)
+
         self.AppConfig = AppConfig()
         self.AppConfig.readConfig()
 
+        self.ComOpen_changeEnable(True)
         self.comTool_form_init()
         self.comTool_config_init()
         # self.module_init()
-        # self.ui = Ui_frmComTool
+
+    def eventFilter(self, obj, event):
+        if obj == self.ui.txtMain:  # 判断是不是我的事件
+            if event.type() == QEvent.Type.MouseButtonPress:  # 如果label触发了鼠标点击的事件
+                print("press")
+                return True  # 表示停止处理该事件，此时目标对象和后面安装的事件过滤器就无法获得该事件
+            elif event.type() == QEvent.Type.KeyPress:
+                keyEvent = event
+                self.ui.txtMain.verticalScrollBar().setSliderPosition(self.ui.txtMain.verticalScrollBar().maximum())
+
+                cursor = self.ui.txtMain.textCursor()
+                cursor.movePosition(QTextCursor.MoveOperation.End)
+                self.ui.txtMain.setTextCursor(cursor)
+
+                if self.comOk:
+                    if keyEvent.key() == 16777217:  # tab
+                        print("press")
+                        # self.comTool_sendData(keyEvent.text())
+                    else:
+                        self.comTool_sendData(keyEvent.text())
+
+                if self.udpOk:
+                    data = keyEvent.text().toLocal8Bit()
+                    count = self.udpsocket.writeDatagram(data.data(), QHostAddress(self.AppConfig.ServerIP),
+                                                 self.AppConfig.ServerPort)
+                    if count > 0:
+                        self.ui.txtMain.insertPlainText(data)
+
+                if self.tcpOk:
+                    data = keyEvent.text().toLocal8Bit()
+                    count = self.tcpsocket.write(data.data())
+                    if count > 0:
+                        self.ui.txtMain.insertPlainText(data)
+            return True  # 表示停止处理该事件，此时目标对象和后面安装的事件过滤器就无法获得该事件
+        else:
+            return super().eventFilter(obj, event)  # 返回默认的事件过滤器
 
     def comTool_btnStopShow_clicked(self):
         if self.ui.btnStopShow.text() == "停止显示":
@@ -115,12 +156,12 @@ class FrmComTool(Ui_frmComTool):
         self.ui.txtMain.setFontWeight(QFont.Weight.Normal)
 
     def comTool_btnSendData(self):
-        str = self.ui.cboxData.currentText()
-        if str.isEmpty():
+        string = self.ui.cboxData.currentText()
+        if len(string) == 0:
             self.ui.cboxData.setFocus()
             return
 
-        self.comTool_sendData(str)
+        self.comTool_sendData(string)
 
         if self.ui.ckAutoClear.isChecked():
             self.ui.cboxData.setCurrentIndex(-1)
@@ -129,18 +170,23 @@ class FrmComTool(Ui_frmComTool):
     def comTool_sendData(self, string):
         if self.comOk == False or self.com.isOpen() is False:
             return
+
         # 短信猫调试
-        if string.startsWith("AT"):
-            string += "\r"
+        if "AT" in string:
+            string += "\n"
+
+        # convert string to byte
+        res = bytes(string, 'utf-8')
 
         if self.ui.ckHexSend.isChecked():
-            buffer = string
+            buffer = res
         else:
-            buffer = string
+            buffer = res
 
-        self.com.write(buffer)
+        self.com.write(res)
+
         # append(0, buffer)
-        self.sendCount = self.sendCount + buffer.size()
+        self.sendCount = self.sendCount + len(buffer)
         self.ui.btnSendCount.setText("发送 : {} 字节".format(self.sendCount))
 
     def comTool_saveData(self):
@@ -165,7 +211,7 @@ class FrmComTool(Ui_frmComTool):
 
     def comTool_form_init(self):
         # 连接按键
-        self.button_init()
+        self.hotkey_button_init()
 
         self.ui.btnStopShow.clicked.connect(self.comTool_btnStopShow_clicked)
         self.ui.btnSave.clicked.connect(self.comTool_saveData)
@@ -175,6 +221,8 @@ class FrmComTool(Ui_frmComTool):
         self.ui.btnClear.clicked.connect(self.comTool_btnClear_clicked)
         self.ui.txtMain.setLineWrapMode(QtWidgets.QTextEdit.LineWrapMode.WidgetWidth)
         self.ui.btnScan.clicked.connect(self.comTool_AvailableCom_Scan)
+        self.ui.btnSend.clicked.connect(self.comTool_btnSendData)
+        self.ui.btnOpen.clicked.connect(self.ComOpen_Button_Clicked)
 
         # 添加显示参数
         Intervals = ["1", "10", "20", "50", "100", "200", "300", "500", "1000", "1500", "2000", "3000", "5000", "10000"]
@@ -341,7 +389,6 @@ class FrmComTool(Ui_frmComTool):
         self.AppConfig.writeConfig()
 
     def comTool_AvailableCom_Scan(self):
-        print(123)
         comList = []
         info = QSerialPortInfo.availablePorts()
         for i in info:
@@ -367,7 +414,7 @@ class FrmComTool(Ui_frmComTool):
             # 获取当前文本光标
             cursor = self.ui.txtMain.textCursor()
             # 将光标移动到文本结尾
-            cursor.movePosition(QTextCursor.PreviousCharacter)
+            cursor.movePosition(QTextCursor.MoveOperation.PreviousCharacter)
             # 判断当前是否选中了文本，如果选中了文本则取消选中的文本，再删除前一个字符
             if cursor.hasSelection():
                 cursor.clearSelection()
@@ -408,10 +455,10 @@ class FrmComTool(Ui_frmComTool):
     # data是字符串类型
     def comTool_Show_Append(self, type, data):
         self.currentCount = 0
-        maxCount = 10000
+        maxCount = 1000
 
         if self.currentCount >= maxCount:
-            self.saveData()
+            self.comTool_saveData()
             self.ui.txtMain.clear()
             self.currentCount = 0
 
@@ -444,10 +491,10 @@ class FrmComTool(Ui_frmComTool):
         # strData = "时间[{0}] [{1}] {2} <br />".format(time, strType, strData)
 
         # 文本替换
-        strData.replace("ERR", "<font color=red>ERR</font>")
-        strData.replace("WARN", "<font color=yellow>WARN</font>")
-        strData.replace("INF", "<font color=yellow>INF</font>")
-        strData.replace("success", "<font color=green>success</font>")
+        strData = strData.replace("ERR", "<font color=red>ERR</font>")
+        strData = strData.replace("WARN", "<font color=yellow>WARN</font>")
+        strData = strData.replace("INF", "<font color=yellow>INF</font>")
+        strData = strData.replace("success", "<font color=green>success</font>")
 
         # 进度条在尾部，实时显示打印
         if self.ui.txtMain.verticalScrollBar().value() == self.ui.txtMain.verticalScrollBar().maximum():
@@ -473,10 +520,9 @@ class FrmComTool(Ui_frmComTool):
         else:
             self.ui.txtMain.verticalScrollBar().setSliderPosition(curBarPosition)
 
-
         self.currentCount += 1
 
-    def button_init(self):
+    def hotkey_button_init(self):
         # init hot key
         w = QWidget(self.ui.tabWidget)
         self.ui.tabWidget.addTab(w, "hotkey")
@@ -487,9 +533,6 @@ class FrmComTool(Ui_frmComTool):
             btn.clicked.connect(lambda: self.Hotkey_Button_Clicked())
             verticalLayout.addWidget(btn)
         w.setLayout(verticalLayout)
-
-        # 连接串口界面按键
-        self.ui.btnOpen.clicked.connect(self.ComOpen_Button_Clicked)
 
     def ComOpen_Button_Clicked(self):
         if self.ui.btnOpen.text() == "打开串口":
@@ -545,7 +588,7 @@ class FrmComTool(Ui_frmComTool):
 
         else:
             self.com.close()
-            self.com.deleteLater()
+            # self.com.deleteLater()
 
             self.ComOpen_changeEnable(True)
             self.ui.btnOpen.setText("打开串口")
@@ -558,25 +601,23 @@ class FrmComTool(Ui_frmComTool):
         self.ui.cboxParity.setEnabled(b)
         self.ui.cboxPortName.setEnabled(b)
         self.ui.cboxStopBit.setEnabled(b)
-        self.ui.btnSend.setEnabled(b)
-        self.ui.ckAutoSend.setEnabled(b)
-        self.ui.ckAutoSave.setEnabled(b)
+        self.ui.btnSend.setEnabled(bool(1-b))
+        self.ui.ckAutoSend.setEnabled(bool(1-b))
+        self.ui.ckAutoSave.setEnabled(bool(1-b))
 
     def Hotkey_Button_Clicked(self):
         data = self.ui.tabWidget.sender().text()
         data = data + '\n'
         # data.append(0x0d)
-        # convert string to byte
-        res = bytes(data, 'utf-8')
 
         if self.comOk:
-            self.com.write(res)
+            self.comTool_sendData(data)
 
         if self.udpOk:
-            self.udpsocket.writeDatagram(res, QHostAddress(self.AppConfig.ServerIP), self.AppConfig.ServerPort)
+            self.udpsocket.writeDatagram(data, QHostAddress(self.AppConfig.ServerIP), self.AppConfig.ServerPort)
 
         if self.tcpOk:
-            self.tcpsocket.write(res)
+            self.tcpsocket.write(data)
 
     def module_init(self):
         pass

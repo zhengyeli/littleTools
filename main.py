@@ -12,6 +12,8 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(Window)
     # ui的控件，setupUi后才生成，注意先后顺序！！！
-    MainWindow(ui)
+    Main = MainWindow(ui)
     Window.show()
+    # 触发者.installEventFilter(处理者(QOject))
+    # Window.installEventFilter(Main)
     sys.exit(app.exec())

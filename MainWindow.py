@@ -1,5 +1,6 @@
 from tokenize import String
 
+from PyQt6.QtCore import QObject
 from PyQt6.QtWidgets import QWidget
 
 from Ui_MainWindow import Ui_MainWindow
@@ -9,14 +10,23 @@ from module.SerialPort.Ui_frmComTool import Ui_frmComTool
 from module.SerialPort.FrmComTool import FrmComTool
 
 
-class MainWindow(QWidget, Ui_MainWindow):
+class MainWindow(QObject, Ui_MainWindow):
     btn_list = None
 
     def __init__(self, ui):
+        super().__init__()
         self.ui = ui
         self.button_init()
         self.module_init()
         # self.ui = Ui_MainWindow(self.ui)
+
+    def eventFilter(self, obj, event):
+        # print(123)
+        return super().eventFilter(obj, event)
+
+    def keyPressEvent(self, keyevent):
+        print("keyevent")
+        return False
 
     def button_init(self):
         btn_list = self.ui.widgetTop.findChildren(QtWidgets.QAbstractButton)
@@ -58,5 +68,5 @@ class MainWindow(QWidget, Ui_MainWindow):
         widget = QtWidgets.QWidget()
         w = Ui_frmComTool()
         w.setupUi(widget)
-        FrmComTool(w)
+        comTool = FrmComTool(w)
         self.ui.tabWidget.addTab(widget, "comx")

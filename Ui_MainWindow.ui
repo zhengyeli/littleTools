@@ -13,6 +13,12 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QToolButton{
+background-color:transparent;
+
+}</string>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
@@ -71,11 +77,14 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="text">
              <string>串口调试</string>
             </property>
             <property name="icon">
-             <iconset resource="../QT_PROJECT/debugTool_Window/ui/other/main.qrc">
+             <iconset resource="image.qrc">
               <normaloff>:/image/main_main.png</normaloff>:/image/main_main.png</iconset>
             </property>
             <property name="toolButtonStyle">
@@ -95,7 +104,7 @@
              <string>蓝牙调试</string>
             </property>
             <property name="icon">
-             <iconset resource="../QT_PROJECT/debugTool_Window/ui/other/main.qrc">
+             <iconset resource="image.qrc">
               <normaloff>:/image/main_config.png</normaloff>:/image/main_config.png</iconset>
             </property>
             <property name="toolButtonStyle">
@@ -115,7 +124,7 @@
              <string>警情查询</string>
             </property>
             <property name="icon">
-             <iconset resource="../QT_PROJECT/debugTool_Window/ui/other/main.qrc">
+             <iconset resource="image.qrc">
               <normaloff>:/image/main_data.png</normaloff>:/image/main_data.png</iconset>
             </property>
             <property name="checked">
@@ -141,7 +150,7 @@
              <string>调试帮助</string>
             </property>
             <property name="icon">
-             <iconset resource="../QT_PROJECT/debugTool_Window/ui/other/main.qrc">
+             <iconset resource="image.qrc">
               <normaloff>:/image/main_person.png</normaloff>:/image/main_person.png</iconset>
             </property>
             <property name="toolButtonStyle">
@@ -158,13 +167,22 @@
              </sizepolicy>
             </property>
             <property name="styleSheet">
-             <string notr="true"/>
+             <string notr="true">QToolButton{
+margin-right:0px;
+border-radius:4px;
+background-color:transparent;
+border:0px;
+padding-left:0px;
+padding-right:0px;
+padding-top:0px;
+padding-bottom:0px;
+}</string>
             </property>
             <property name="text">
              <string>用户退出</string>
             </property>
             <property name="icon">
-             <iconset resource="../QT_PROJECT/debugTool_Window/ui/other/main.qrc">
+             <iconset resource="image.qrc">
               <normaloff>:/image/main_exit.png</normaloff>:/image/main_exit.png</iconset>
             </property>
             <property name="toolButtonStyle">
@@ -409,7 +427,7 @@
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources>
-  <include location="../QT_PROJECT/debugTool_Window/ui/other/main.qrc"/>
+  <include location="image.qrc"/>
  </resources>
  <connections/>
 </ui>
