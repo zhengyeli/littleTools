@@ -1,11 +1,13 @@
+from datetime import time
 from distutils.util import strtobool
 
-from PyQt6 import QtSerialPort
-from PyQt6.QtCore import QSettings, QTimer, QIODevice, pyqtSignal, QFile, QTextStream, QDateTime
-from PyQt6.QtGui import QFont
-from PyQt6.QtNetwork import QTcpSocket, QUdpSocket
+from PyQt6 import QtSerialPort, QtWidgets
+from PyQt6.QtCore import QSettings, QTimer, QIODevice, pyqtSignal, Qt, QByteArray, QDateTime, QFile, QTextStream
+from PyQt6.QtGui import QTextCursor, QColor, QFont
+from PyQt6.QtNetwork import QTcpSocket, QUdpSocket, QHostAddress
 from PyQt6.QtSerialPort import QSerialPort, QSerialPortInfo
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QComboBox, QCheckBox, QFileDialog
+from PySide6.QtWidgets import QAbstractSlider
 
 from module.SerialPort.AppConfig import AppConfig
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
@@ -40,15 +42,15 @@ class FrmComTool(Ui_frmComTool):
     emit_open_com_successful = pyqtSignal()
 
     def __init__(self, ui):
+        self.isinputText = True
+        self.currentCount = None
         self.ui = ui
-        self.serial = None
-        self.com = None
+        self.com = QSerialPort()
         self.comOk = False
         self.receiveCount = 0
         self.sendCount = 0
         self.isShow = True
 
-        self.timerRead = None
         self.timerSend = None
         self.timerSave = None
         self.timerConnect = None
@@ -64,7 +66,7 @@ class FrmComTool(Ui_frmComTool):
         self.comTool_form_init()
         self.comTool_config_init()
         # self.module_init()
-        # self.ui = Ui_frmComTool(self.ui)
+        # self.ui = Ui_frmComTool
 
     def comTool_btnStopShow_clicked(self):
         if self.ui.btnStopShow.text() == "停止显示":
@@ -143,14 +145,19 @@ class FrmComTool(Ui_frmComTool):
 
     def comTool_saveData(self):
         tempData = self.ui.txtMain.toPlainText()
-        if tempData == "":
+        if len(tempData) == 0:
             return
 
         now = QDateTime.currentDateTime()
         name = now.toString("yyyy-MM-dd-HH-mm-ss")
-        fileName = "{0}/{1} {2}.txt".format("./", self.ui.cboxPortName.currentText(), name)
+
+        if self.ui.cboxPortName.currentText() is None:
+            fileName = "{0}/{1} {2}.txt".format("./", "comX", name)
+        else:
+            fileName = "{0}{1} {2}.txt".format("./", self.ui.cboxPortName.currentText(), name)
+
         file = QFile(fileName)
-        file.open(QFile.OpenModeFlagWriteOnly | QIODevice.OpenModeFlag.Text)
+        file.open(QFile.OpenModeFlag.ReadWrite | QIODevice.OpenModeFlag.ReadWrite)
         out = QTextStream(file)
         out << tempData
         file.close()
@@ -166,16 +173,14 @@ class FrmComTool(Ui_frmComTool):
         self.ui.btnSendCount.clicked.connect(self.comTool_btnSendCount_clicked)
         self.ui.btnData.clicked.connect(self.comTool_btnData_clicked)
         self.ui.btnClear.clicked.connect(self.comTool_btnClear_clicked)
+        self.ui.txtMain.setLineWrapMode(QtWidgets.QTextEdit.LineWrapMode.WidgetWidth)
+        self.ui.btnScan.clicked.connect(self.comTool_AvailableCom_Scan)
 
         # 添加显示参数
         Intervals = ["1", "10", "20", "50", "100", "200", "300", "500", "1000", "1500", "2000", "3000", "5000", "10000"]
         Datas = ["AA BB CC"]
         self.ui.cboxSendInterval.addItems(Intervals)
         self.ui.cboxData.addItems(Datas)
-
-        self.timerRead = QTimer()
-        self.timerRead.setInterval(100)
-        self.timerRead.timeout.connect(self.comTool_Data_readFromCom)
 
         self.timerSend = QTimer()
         self.timerSend.setInterval(100)
@@ -197,6 +202,8 @@ class FrmComTool(Ui_frmComTool):
 
         self.timerConnect = QTimer()
         self.timerConnect.timeout.connect(self.comTool_Data_readFromCom)
+
+        self.com.readyRead.connect(lambda: self.comTool_Data_readFromCom())
 
         self.ui.txtMain.installEventFilter(self.ui.txtMain)
 
@@ -333,13 +340,141 @@ class FrmComTool(Ui_frmComTool):
 
         self.AppConfig.writeConfig()
 
+    def comTool_AvailableCom_Scan(self):
+        print(123)
+        comList = []
+        info = QSerialPortInfo.availablePorts()
+        for i in info:
+            comList.append(i.portName())
+
+        if len(comList) > 0:
+            return
+
+        self.ui.cboxPortName.addItems(comList)
+
     def comTool_Data_readFromCom(self):
-        if self.com.bytesAvailable() <= 0:
+        # self.com = QSerialPort()
+        if self.com.bytesAvailable() == 0:
             return
-        data = self.com.readAll()
-        if data.len <= 0:
+        # data = QByteArray()
+        QBA_data = self.com.readAll()
+        Str_data = str(QBA_data, encoding='utf-8')
+
+        if len(Str_data) == 0:
             return
-        print(data)
+
+        if "\b \b" in Str_data:  # backspace
+            # 获取当前文本光标
+            cursor = self.ui.txtMain.textCursor()
+            # 将光标移动到文本结尾
+            cursor.movePosition(QTextCursor.PreviousCharacter)
+            # 判断当前是否选中了文本，如果选中了文本则取消选中的文本，再删除前一个字符
+            if cursor.hasSelection():
+                cursor.clearSelection()
+            # 删除前一个字符
+            while Str_data.indexOf("\b \b") != -1:
+                # cursor.movePosition(QTextCursor::End)
+                cursor.deletePreviousChar()
+                self.ui.txtMain.setTextCursor(cursor)
+                Str_data.remove(Str_data.indexOf("\b \b"), Str_data.indexOf("\b \b") + 3)
+                self.ui.txtMain.verticalScrollBar().triggerAction(QAbstractSlider.SliderToMaximum)
+                data = Str_data.replace("\b \b", "")
+
+        if self.isShow:
+            if self.ui.ckHexReceive.isChecked():
+                buffer = Str_data
+            else:
+                buffer = Str_data
+        else:
+            return
+        # buffer = QString::fromLocal8Bit(data)
+
+        # 启用调试则模拟调试数据
+        if self.ui.ckDebug.isChecked():
+            '''count = AppData::Keys.count()
+            for i in range(0, count):
+                if (buffer.startsWith(AppData::Keys.at(i))):
+                    sendData(AppData::Values.at(i))
+                    break'''
+        self.comTool_Show_Append(1, buffer)
+        self.receiveCount = self.receiveCount + len(Str_data)
+        self.ui.btnReceiveCount.setText("接收 : {} 字节".format(self.receiveCount))
+
+        # 启用网络转发则调用网络发送数据
+        if self.tcpOk:
+            self.tcpsocket.write(Str_data)
+            self.comTool_Show_Append(4, buffer)
+
+    # data是字符串类型
+    def comTool_Show_Append(self, type, data):
+        self.currentCount = 0
+        maxCount = 10000
+
+        if self.currentCount >= maxCount:
+            self.saveData()
+            self.ui.txtMain.clear()
+            self.currentCount = 0
+
+        if self.isShow is False:
+            return
+
+        # 过滤回车换行符
+        strData = data
+
+        strData = strData.replace('\r', '')
+
+        # 不同类型不同颜色显示
+        if type == 0:
+            strType = "串口发送"
+        elif type == 1:
+            strType = "串口接收"
+            strData = strData.replace("\n", "<br />")  # html's \r
+        elif type == 2:
+            strType = "处理延时"
+        elif type == 3:
+            strType = "正在校验"
+        elif type == 4:
+            strType = "网络发送"
+        elif type == 5:
+            strType = "网络接收"
+            # strData = strData.replace("\r", "")
+        elif type == 6:
+            strType = "提示信息"
+
+        # strData = "时间[{0}] [{1}] {2} <br />".format(time, strType, strData)
+
+        # 文本替换
+        strData.replace("ERR", "<font color=red>ERR</font>")
+        strData.replace("WARN", "<font color=yellow>WARN</font>")
+        strData.replace("INF", "<font color=yellow>INF</font>")
+        strData.replace("success", "<font color=green>success</font>")
+
+        # 进度条在尾部，实时显示打印
+        if self.ui.txtMain.verticalScrollBar().value() == self.ui.txtMain.verticalScrollBar().maximum():
+            self.isinputText = True
+        else:
+            self.isinputText = False
+
+        # 记录滑条的位置
+        curBarPosition = self.ui.txtMain.verticalScrollBar().value()
+        # 光标的处理
+        cursor = self.ui.txtMain.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        cursor.deletePreviousChar()
+        self.ui.txtMain.setTextCursor(cursor)
+
+        # insertHtml 支持html格式颜色文字
+        self.ui.txtMain.insertHtml(strData)
+        self.ui.txtMain.insertPlainText("#")
+
+        if self.isinputText:
+            self.ui.txtMain.verticalScrollBar().setSliderPosition(self.ui.txtMain.verticalScrollBar().maximum())
+            self.ui.txtMain.update()
+        else:
+            self.ui.txtMain.verticalScrollBar().setSliderPosition(curBarPosition)
+
+
+        self.currentCount += 1
 
     def button_init(self):
         # init hot key
@@ -358,7 +493,6 @@ class FrmComTool(Ui_frmComTool):
 
     def ComOpen_Button_Clicked(self):
         if self.ui.btnOpen.text() == "打开串口":
-            self.com = QSerialPort()
 
             self.com.setPortName(self.AppConfig.PortName)
             self.com.setReadBufferSize(65535)
@@ -408,20 +542,8 @@ class FrmComTool(Ui_frmComTool):
                 self.com.flush()
                 self.ComOpen_changeEnable(False)
                 self.ui.btnOpen.setText("关闭串口")
-                self.timerRead.start()
 
-        elif self.ui.btnOpen.text() == "扫描":
-            comList = []
-            info = QSerialPortInfo.availablePorts()
-            for i in info:
-                comList.append(i.portName())
-
-            if info.isEmpty():
-                self.ui.btnOpen.setText("扫描")
-
-            self.ui.cboxPortName.addItems(comList)
         else:
-            self.timerRead.stop()
             self.com.close()
             self.com.deleteLater()
 
@@ -442,15 +564,19 @@ class FrmComTool(Ui_frmComTool):
 
     def Hotkey_Button_Clicked(self):
         data = self.ui.tabWidget.sender().text()
+        data = data + '\n'
         # data.append(0x0d)
-        if self.com is not None:
-            self.com.write(data)
+        # convert string to byte
+        res = bytes(data, 'utf-8')
+
+        if self.comOk:
+            self.com.write(res)
 
         if self.udpOk:
-            self.udpsocket.writeDatagram(data.data(), QHostAddress(ServerIP), ServerPort)
+            self.udpsocket.writeDatagram(res, QHostAddress(self.AppConfig.ServerIP), self.AppConfig.ServerPort)
 
         if self.tcpOk:
-            self.tcpsocket.write(data)
+            self.tcpsocket.write(res)
 
     def module_init(self):
         pass

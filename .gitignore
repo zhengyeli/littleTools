@@ -1,3 +1,6 @@
 .idea/vcs.xml
-module/SerialPort/__pycache__/FrmComTool.cpython-39.pyc
-module/SerialPort/__pycache__/FrmComTool.cpython-310.pyc
+module/SerialPort/__pycache__/*.pyc
+__pycache__/*.pyc
+*/__pycache__/*.pyc
+*/*/__pycache__/*.pyc
+*.txt

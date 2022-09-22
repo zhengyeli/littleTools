@@ -79,7 +79,7 @@ class AppConfig:
         self.SleepTime = set.value("SleepTime", self.SleepTime)
         self.AutoConnect = dict[set.value("AutoConnect", self.AutoConnect)]
         set.endGroup()
-        
+
     def writeConfig(self):          # 写入配置参数
         set = QSettings(self.ConfigFile, QSettings.Format.IniFormat)
 
