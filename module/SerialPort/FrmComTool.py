@@ -5,7 +5,7 @@ from PyQt6 import QtSerialPort, QtWidgets
 from PyQt6.QtCore import QSettings, QTimer, QIODevice, pyqtSignal, Qt, QByteArray, QDateTime, QFile, QTextStream, \
     QEvent, QObject
 from PyQt6.QtGui import QTextCursor, QColor, QFont, QKeyEvent
-from PyQt6.QtNetwork import QTcpSocket, QUdpSocket, QHostAddress
+from PyQt6.QtNetwork import QTcpSocket, QUdpSocket, QHostAddress, QNetworkInterface, QAbstractSocket
 from PyQt6.QtSerialPort import QSerialPort, QSerialPortInfo
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QComboBox, QCheckBox, QFileDialog
 from PySide6.QtWidgets import QAbstractSlider
@@ -14,9 +14,6 @@ from module.SerialPort.AppConfig import AppConfig
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
 
 rxBufSize = 512
-isinputText = True
-
-netMode = ["Tcp_client", "Tcp_Server", "Udp_Client", "Udp_Server"]
 
 hotkey = [
     "govee",
@@ -44,6 +41,7 @@ class FrmComTool(QObject, Ui_frmComTool):
 
     def __init__(self, ui):
         super().__init__()
+        self.m_udpSocketlist = None
         self.isinputText = True
         self.currentCount = None
         self.ui = Ui_frmComTool()  # 方便知道ui里的成员
@@ -59,9 +57,9 @@ class FrmComTool(QObject, Ui_frmComTool):
         self.timerConnect = None
 
         self.udpOk = False
-        self.udpsocket = None
+        self.udpsocket = QUdpSocket()
         self.tcpOk = False
-        self.tcpsocket = None
+        self.tcpsocket = QTcpSocket()
 
         self.ui.txtMain.installEventFilter(self)
 
@@ -239,14 +237,14 @@ class FrmComTool(QObject, Ui_frmComTool):
         self.timerSave.timeout.connect(self.comTool_saveData)
 
         self.tcpOk = False
-        self.tcpsocket = QTcpSocket()
         self.tcpsocket.abort()
-        self.tcpsocket.readyRead.connect(self.comTool_Data_readFromCom)
+        self.tcpsocket.readyRead.connect(self.networkTool_TcpData_Read)
+        self.tcpsocket.error.connect(self.networkTool_NetworkData_ReadError)
 
         self.udpOk = False
-        self.udpsocket = QUdpSocket()
         self.udpsocket.abort()
-        self.udpsocket.readyRead.connect(self.comTool_Data_readFromCom)
+        self.udpsocket.readyRead.connect(self.networkTool_UdpData_Read)
+        self.udpsocket.error.connect(self.networkTool_NetworkData_ReadError)
 
         self.timerConnect = QTimer()
         self.timerConnect.timeout.connect(self.comTool_Data_readFromCom)
@@ -604,6 +602,97 @@ class FrmComTool(QObject, Ui_frmComTool):
         self.ui.btnSend.setEnabled(bool(1-b))
         self.ui.ckAutoSend.setEnabled(bool(1-b))
         self.ui.ckAutoSave.setEnabled(bool(1-b))
+
+    netMode = ["Tcp_client", "Tcp_Server", "Udp_Client", "Udp_Server"]
+    def networkTool_Btn_UdpBroadfast_Scan(self):
+        mode = self.ui.cboxMode.currentText()
+        if mode == "Udp_Client":
+            data = "where are you?"
+            if self.m_udpSocketlist.isEmpty():
+                self.m_udpSocketlist = QNetworkInterface.allInterfaces()
+                for QNetworkInter in self.m_udpSocketlist:
+                    for entry in QNetworkInter:
+                        broadcastAddress = entry.broadcast()
+                        if broadcastAddress != QHostAddress.SpecialAddress.Null and \
+                                entry.ip() != QHostAddress.SpecialAddress.LocalHost and \
+                                entry.ip().protocol() == QAbstractSocket.NetworkLayerProtocol.IPv4Protocol:
+                            sock = QUdpSocket()
+                            if sock.bind(entry.ip(), self.AppConfig.ServerPort):
+                                print("bind ok" + entry.ip())
+                                sock.readyRead.connect(self.networkTool_TcpData_Read())
+                                # convert string to byte
+                                res = bytes(data, 'utf-8')
+                                sock.writeDatagram(res, QHostAddress.SpecialAddress.Broadcast, self.AppConfig.ServerPort)
+                                self.m_udpSocketlist.append(sock)
+            else:
+                for sock in self.m_udpSocketlist:
+                    if sock.state() == QAbstractSocket.SocketState.BoundState:
+                        sock.writeDatagram(data, QHostAddress.SpecialAddress.Broadcast, self.AppConfig.ServerPort)
+        else:
+            self.comTool_Show_Append(4, "only work at udp client mode")
+
+    def networkTool_NetworkData_ReadError(self):
+        self.ui.btnStart.setText("启动")
+        self.comTool_Show_Append(6, "连接服务器失败,{}".format(self.tcpsocket.errorString()))
+        self.tcpsocket.disconnectFromHost()
+        self.tcpOk = False
+
+        self.comTool_Show_Append(6, "连接服务器失败,%1".format(self.udpsocket.errorString()))
+        self.udpsocket.disconnectFromHost()
+        self.udpOk = False
+
+    def networkTool_TcpData_Read(self):
+        if self.tcpsocket.bytesAvailable() > 0:
+            data = self.tcpsocket.readAll()
+            if self.ui.ckHexReceive.isChecked():
+                buffer = data
+            else:
+                buffer = data
+
+            self.comTool_Show_Append(5, buffer)
+
+            # 将收到的网络数据转发给串口
+            if self.comOk:
+                self.comTool_sendData(buffer)
+                self.comTool_Show_Append(0, buffer)
+    def networkTool_UdpData_Read(self):
+        data = bytes()
+        if self.udpsocket.bytesAvailable() > 0:
+            self.udpsocket.readDatagram(data, 512)
+            if self.ui.ckHexReceive.isChecked():
+                buffer = data
+            else:
+                buffer = data
+
+            if self.udpOk:
+                self.comTool_Show_Append(5, data)
+
+            # 将收到的网络数据转发给串口
+            if self.comOk:
+                self.com.write(data)
+                self.comTool_Show_Append(0, buffer)
+
+        for sock in self.m_udpSocketlist:
+            if sock.bytesAvailable() > 0:
+                addr = QHostAddress()
+                port = int()
+                sock.readDatagram(data, rxBufSize, addr, port)
+                if self.ui.ckHexReceive.isChecked():
+                    buffer = data
+                else:
+                    buffer = data
+                if "Server" in data:
+                    self.m_ipServerlist << addr.toString()
+                    self.comTool_Show_Append(5, buffer)
+
+    def networkTool_Client_AutoConnect(self):
+        if self.tcpOk and self.AppConfig.AutoConnect and self.ui.btnStart.text() == "启动":
+            if self.AppConfig.ServerIP != "" and self.AppConfig.ServerPort != "0":
+                self.tcpsocket.connectToHost(self.AppConfig.ServerIP, int(self.AppConfig.ServerPort))
+                if self.tcpsocket.waitForConnected(100):
+                    self.ui.btnStart.setText("停止")
+                    self.comTool_Show_Append(6, "连接服务器成功")
+                    self.tcpOk = True
 
     def Hotkey_Button_Clicked(self):
         data = self.ui.tabWidget.sender().text()
