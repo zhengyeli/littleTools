@@ -69,7 +69,7 @@ class FrmComTool(QObject, Ui_frmComTool):
         self.ComOpen_changeEnable(True)
         self.comTool_form_init()
         self.comTool_config_init()
-        # self.module_init()
+        self.networkTool_module_init()
 
     def eventFilter(self, obj, event):
         if obj == self.ui.txtMain:  # 判断是不是我的事件
@@ -145,7 +145,7 @@ class FrmComTool(QObject, Ui_frmComTool):
             out << self.ui.txtMain.toPlainText()
             file.close()
             self.ui.btnData.setText("管理数据")
-            # AppData::readSendData()
+            # AppData.readSendData()
 
     def comTool_btnClear_clicked(self):
         self.ui.txtMain.clear()
@@ -239,12 +239,12 @@ class FrmComTool(QObject, Ui_frmComTool):
         self.tcpOk = False
         self.tcpsocket.abort()
         self.tcpsocket.readyRead.connect(self.networkTool_TcpData_Read)
-        self.tcpsocket.error.connect(self.networkTool_NetworkData_ReadError)
+        self.tcpsocket.errorOccurred.connect(self.networkTool_NetworkData_ReadError)
 
         self.udpOk = False
         self.udpsocket.abort()
         self.udpsocket.readyRead.connect(self.networkTool_UdpData_Read)
-        self.udpsocket.error.connect(self.networkTool_NetworkData_ReadError)
+        self.udpsocket.errorOccurred.connect(self.networkTool_NetworkData_ReadError)
 
         self.timerConnect = QTimer()
         self.timerConnect.timeout.connect(self.comTool_Data_readFromCom)
@@ -418,7 +418,7 @@ class FrmComTool(QObject, Ui_frmComTool):
                 cursor.clearSelection()
             # 删除前一个字符
             while Str_data.indexOf("\b \b") != -1:
-                # cursor.movePosition(QTextCursor::End)
+                # cursor.movePosition(QTextCursor.End)
                 cursor.deletePreviousChar()
                 self.ui.txtMain.setTextCursor(cursor)
                 Str_data.remove(Str_data.indexOf("\b \b"), Str_data.indexOf("\b \b") + 3)
@@ -432,14 +432,14 @@ class FrmComTool(QObject, Ui_frmComTool):
                 buffer = Str_data
         else:
             return
-        # buffer = QString::fromLocal8Bit(data)
+        # buffer = QString.fromLocal8Bit(data)
 
         # 启用调试则模拟调试数据
         if self.ui.ckDebug.isChecked():
-            '''count = AppData::Keys.count()
+            '''count = AppData.Keys.count()
             for i in range(0, count):
-                if (buffer.startsWith(AppData::Keys.at(i))):
-                    sendData(AppData::Values.at(i))
+                if (buffer.startsWith(AppData.Keys.at(i))):
+                    sendData(AppData.Values.at(i))
                     break'''
         self.comTool_Show_Append(1, buffer)
         self.receiveCount = self.receiveCount + len(Str_data)
@@ -467,7 +467,7 @@ class FrmComTool(QObject, Ui_frmComTool):
         strData = data
 
         strData = strData.replace('\r', '')
-
+        strData = strData.replace("\n", "<br />")  # html's \r
         # 不同类型不同颜色显示
         if type == 0:
             strType = "串口发送"
@@ -603,7 +603,78 @@ class FrmComTool(QObject, Ui_frmComTool):
         self.ui.ckAutoSend.setEnabled(bool(1-b))
         self.ui.ckAutoSave.setEnabled(bool(1-b))
 
-    netMode = ["Tcp_client", "Tcp_Server", "Udp_Client", "Udp_Server"]
+    def networkTool_module_init(self):
+        self.networkTool_form_enable(True)
+        self.ui.btnStart.clicked.connect(self.networkTool_btn_network_start)
+
+    def networkTool_form_enable(self, b):
+        self.ui.cboxMode.setEnabled(b)
+
+    def networkTool_btn_network_start(self):
+        mode = self.ui.cboxMode.currentText()
+        if self.ui.btnStart.text() == "启动":
+            if self.AppConfig.ServerIP == "" or self.AppConfig.ServerPort == "0":
+                self.comTool_Show_Append(6, "IP地址和远程端口不能为空\n")
+                return
+
+            if mode == "Tcp_Client":
+                print(int(self.AppConfig.ServerPort))
+                self.tcpsocket.connectToHost(self.AppConfig.ServerIP, int(self.AppConfig.ServerPort))
+                if self.tcpsocket.waitForConnected(1000):
+                    self.ui.btnStart.setText("停止")
+                    self.comTool_Show_Append(6, "连接tcp服务器成功\n")
+                    self.tcpOk = True
+                else:
+                    self.tcpOk = False
+                    self.comTool_Show_Append(6, "连接tcp服务器fail\n")
+            elif mode == "Tcp_Server":
+                self.tcpsocket.bind(QHostAddress.SpecialAddress.Any, int(self.AppConfig.ListenPort), QTcpSocket.BindFlag.DefaultForPlatform)
+                self.ui.btnStart.setText("停止")
+                self.comTool_Show_Append(6, "bind成功\n")
+            elif mode == "Udp_Client":
+                data = "govee"
+                if self.udpsocket.writeDatagram(bytes(data, 'utf-8'), QHostAddress(self.AppConfig.ServerIP), int(self.AppConfig.ServerPort)) > 0:
+                    self.comTool_Show_Append(6, "连接udp服务器成功\n")
+                    self.ui.btnStart.setText("停止")
+                    self.udpOk = True
+                else:
+                    self.udpOk = False
+                    self.comTool_Show_Append(6, "连接udp服务器fail\n")
+            elif mode == "Udp_Server":
+                if self.udpsocket.bind(QHostAddress.SpecialAddress.LocalHost, \
+                                       int(self.AppConfig.ListenPort), QUdpSocket.BindFlag.DefaultForPlatform):
+                    self.ui.btnStart.setText("停止")
+                    self.comTool_Show_Append(6, "bind udp 成功\n")
+                    self.udpOk = True
+                else:
+                    self.comTool_Show_Append(6, "bind udp服务器fail\n")
+        else:
+            if mode == "Tcp_Client":
+                self.tcpsocket.disconnectFromHost()
+                if self.tcpsocket.state() == QAbstractSocket.SocketState.UnconnectedState or \
+                        self.tcpsocket.waitForDisconnected(100):
+                    self.ui.btnStart.setText("启动")
+                    self.tcpOk = False
+                    self.comTool_Show_Append(6, "断开Tcp服务器成功\n")
+            elif mode == "Tcp_Server":
+                self.tcpOk = False
+                self.tcpsocket.close()
+                self.ui.btnStart.setText("启动")
+                self.comTool_Show_Append(6, "断开绑定\n")
+            elif mode == "Udp_Client":
+                self.udpOk = False
+                self.ui.btnStart.setText("启动")
+                self.comTool_Show_Append(6, "断开udp服务器成功\n")
+            elif mode == "Udp_Server":
+                self.udpsocket.close()
+                self.ui.btnStart.setText("启动")
+                self.comTool_Show_Append(6, "断开\n")
+
+        if self.ui.btnStart.text() == "启动":
+            self.networkTool_form_enable(True)
+        else:
+            self.networkTool_form_enable(False)
+
     def networkTool_Btn_UdpBroadfast_Scan(self):
         mode = self.ui.cboxMode.currentText()
         if mode == "Udp_Client":
@@ -655,15 +726,17 @@ class FrmComTool(QObject, Ui_frmComTool):
             if self.comOk:
                 self.comTool_sendData(buffer)
                 self.comTool_Show_Append(0, buffer)
+
     def networkTool_UdpData_Read(self):
-        data = bytes()
+        print(123)
         if self.udpsocket.bytesAvailable() > 0:
-            self.udpsocket.readDatagram(data, 512)
+            tupleInfo = self.udpsocket.readDatagram(512)
+            data = str(tupleInfo[0], encoding='utf-8')
             if self.ui.ckHexReceive.isChecked():
                 buffer = data
             else:
                 buffer = data
-
+            print(data)
             if self.udpOk:
                 self.comTool_Show_Append(5, data)
 
