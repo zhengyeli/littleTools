@@ -107,7 +107,7 @@
          <enum>QTabWidget::South</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -434,45 +434,76 @@
           <property name="bottomMargin">
            <number>6</number>
           </property>
-          <item row="2" column="0">
-           <widget class="QLabel" name="labServerPort">
-            <property name="text">
-             <string>远程端口</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="txtListenPort"/>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="txtServerIP">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
           <item row="3" column="0">
-           <widget class="QLabel" name="labListenPort">
+           <widget class="QLabel" name="labServerIP">
             <property name="text">
-             <string>监听端口</string>
+             <string>远程地址</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="labMode">
-            <property name="text">
-             <string>转换模式</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0" colspan="2">
+          <item row="9" column="0" colspan="2">
            <widget class="QPushButton" name="scan">
             <property name="text">
              <string>扫描UDP服务端</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="6" column="0">
+           <widget class="QLabel" name="labSleepTime">
+            <property name="text">
+             <string>延时时间</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="txtListenPort"/>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="labServerPort">
+            <property name="text">
+             <string>远程端口</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="txtServerPort">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="txtServerIP">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="labListenPort">
+            <property name="text">
+             <string>监听端口</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="1">
+           <widget class="QCheckBox" name="ckAutoConnect">
+            <property name="text">
+             <string>自动重连</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QComboBox" name="cboxSleepTime"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="labMode">
+            <property name="text">
+             <string>转换模式</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
            <widget class="QComboBox" name="cboxMode">
             <item>
              <property name="text">
@@ -496,41 +527,24 @@
             </item>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="QComboBox" name="cboxSleepTime"/>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labServerIP">
-            <property name="text">
-             <string>远程地址</string>
+          <item row="7" column="0" colspan="2">
+           <widget class="QLineEdit" name="lineEditLocal">
+            <property name="readOnly">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="txtServerPort">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="labSleepTime">
-            <property name="text">
-             <string>延时时间</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
+          <item row="10" column="0">
            <widget class="QPushButton" name="btnStart">
             <property name="text">
              <string>启动</string>
             </property>
            </widget>
           </item>
-          <item row="6" column="1">
-           <widget class="QCheckBox" name="ckAutoConnect">
-            <property name="text">
-             <string>自动重连</string>
+          <item row="8" column="0" colspan="2">
+           <widget class="QLineEdit" name="lineEditRemote">
+            <property name="readOnly">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
