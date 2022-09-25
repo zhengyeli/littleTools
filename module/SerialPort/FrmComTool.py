@@ -582,7 +582,7 @@ class FrmComTool(QObject, Ui_frmComTool):
 
             if self.comOk:
                 # 改变tab名字信号
-                # self.emit_open_com_successful()
+                self.emit_open_com_successful()
                 # 清空缓冲区
                 self.com.flush()
                 self.ComOpen_changeEnable(False)
