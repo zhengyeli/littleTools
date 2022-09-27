@@ -5,7 +5,7 @@ class DeviceInfo(QBluetoothDeviceInfo):
 
     def __init__(self, info, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.m_device = None
+        self.m_device = info
 
     def getDevice(self):
         return self.m_device

@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QWidget
 from Ui_MainWindow import Ui_MainWindow
 from PyQt6 import QtCore, QtGui, QtWidgets
 
+from module.LowPowerBlueTooth import bleMainWin
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
 from module.SerialPort.FrmComTool import FrmComTool
 
@@ -58,6 +59,7 @@ class MainWindow(QObject, Ui_MainWindow):
 
     def module_init(self):
         self.module_serialports_init()
+        # self.module_lowPowerBle_init()
 
     # 串口
     def module_serialports_init(self):
@@ -70,3 +72,6 @@ class MainWindow(QObject, Ui_MainWindow):
         w.setupUi(widget)
         comTool = FrmComTool(w)
         self.ui.tabWidget.addTab(widget, "comx")
+
+    def module_lowPowerBle_init(self):
+        bleMainWin.BleMainWin(self.ui.page2)

@@ -1,6 +1,7 @@
-.idea/vcs.xml
+.idea/*.xml
 module/SerialPort/__pycache__/*.pyc
 __pycache__/*.pyc
 */__pycache__/*.pyc
 */*/__pycache__/*.pyc
+*/*/*/__pycache__/*.pyc
 *.txt
