@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QAbstractSlider
 
 from module.SerialPort.AppConfig import AppConfig
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
+from module.test import test_wave
 
 rxBufSize = 512
 
@@ -35,6 +36,8 @@ hotkey = [
     "log disable scan",
 ]
 
+test_wave_enable = True
+
 
 class FrmComTool(QObject, Ui_frmComTool):
     btn_list = None
@@ -43,6 +46,10 @@ class FrmComTool(QObject, Ui_frmComTool):
 
     def __init__(self, ui):
         super().__init__()
+
+        if test_wave_enable:
+            self.test = test_wave()
+
         self.udpEventTuple = None
         self.m_udpSocketlist = None
         self.isinputText = True
@@ -407,6 +414,11 @@ class FrmComTool(QObject, Ui_frmComTool):
         if len(Str_data) == 0:
             return
 
+        if test_wave_enable:
+            self.test.serial_data_handle(Str_data)
+            return
+
+
         if "\b \b" in Str_data:  # backspace
             # 获取当前文本光标
             cursor = self.ui.txtMain.textCursor()
@@ -577,12 +589,11 @@ class FrmComTool(QObject, Ui_frmComTool):
                 self.com.setStopBits(QSerialPort.StopBits.OneStop)
 
             self.com.setFlowControl(QSerialPort.FlowControl.NoFlowControl)
-
             self.comOk = self.com.open(QIODevice.OpenModeFlag.ReadWrite)
 
             if self.comOk:
                 # 改变tab名字信号
-                self.emit_open_com_successful()
+                self.emit_open_com_successful.emit()
                 # 清空缓冲区
                 self.com.flush()
                 self.ComOpen_changeEnable(False)

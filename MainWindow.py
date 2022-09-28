@@ -59,7 +59,7 @@ class MainWindow(QObject, Ui_MainWindow):
 
     def module_init(self):
         self.module_serialports_init()
-        # self.module_lowPowerBle_init()
+        self.module_lowPowerBle_init()
 
     # 串口
     def module_serialports_init(self):

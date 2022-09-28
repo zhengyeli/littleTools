@@ -123,14 +123,29 @@ class BleMainWin(QMainWindow):
     def creatNewDockWindow(self, w, a):
         self.superWidget.addDockWidget(a, w)
 
-    def ble_send(self, string):
-        if self.deviceHandler.setChar.isValid():
-            hexstr = string.encode().hex()
-            print(hexstr)
+    def ble_bytes_send(self, byte):
+        self.deviceHandler.characteristicWrite(byte)
+
+    def ble_string_send(self, string):
+        string = string.replace(' ', '')
+        self.deviceHandler.characteristicWrite(bytes.fromhex(string))
+
+    def govee_ble_send(self, string):
+        hex = bytes.fromhex(string)
+        send_hex = [0] * 20
+        for i in range(0, len(hex)):
+            send_hex[i] = hex[i]
+        send_hex[19] = self.Govee_Utils_GetBccCode(send_hex)
+        byteArray = bytearray(send_hex)
+        hex_string = bytearray.hex(byteArray)
+        self.ble_bytes_send(bytes.fromhex(hex_string))
 
     def Govee_Utils_GetBccCode(self, data_array):
+        ret = 0
         for data in data_array:
-            print(data)
+            ret ^= data
+
+        return ret
 
 
 

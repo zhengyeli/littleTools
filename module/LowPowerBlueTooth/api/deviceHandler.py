@@ -1,5 +1,5 @@
 from PyQt6.QtBluetooth import QBluetoothUuid, QLowEnergyService, QLowEnergyController, QLowEnergyDescriptor, \
-    QBluetoothDeviceInfo
+    QBluetoothDeviceInfo, QLowEnergyCharacteristic
 from PyQt6.QtCore import QTimer, pyqtSignal, QByteArray
 
 from module.LowPowerBlueTooth.api.BluetoothBaseClass import BluetoothBaseClass
@@ -24,7 +24,7 @@ class DeviceHandler(BluetoothBaseClass):
         self.setInfo("Service scan done.")
         uuids = self.m_control.services()
         if self.m_service is not None:
-            self.m_service.clear()
+            del self.m_service
             self.m_service = None
 
         for uuid in uuids:
@@ -47,7 +47,7 @@ class DeviceHandler(BluetoothBaseClass):
 
         if self.m_control is not None:
             self.m_control.disconnectFromDevice()
-            self.m_control.clear()
+            del self.m_control
             self.m_control = None
 
         if self.m_currentDevice is not None:
@@ -77,7 +77,6 @@ class DeviceHandler(BluetoothBaseClass):
         self.setInfo("descriptorRead ")
 
     def serviceStateChanged(self, newState):
-        print(newState)
         if newState == QLowEnergyService.ServiceState.RemoteServiceDiscovering:
             self.setInfo("QLowEnergyService.ServiceState.RemoteServiceDiscovering")
         elif newState == QLowEnergyService.ServiceState.RemoteServiceDiscovered:
@@ -85,12 +84,12 @@ class DeviceHandler(BluetoothBaseClass):
             self.searchCharacteristic()
         elif newState == QLowEnergyService.ServiceState.RemoteService:
             self.setInfo("QLowEnergyService.ServiceState.RemoteService")
-            QTimer.singleShot(self.serviceScanDone)
+            QTimer.singleShot(0, self.serviceScanDone)
         else:
-            pass
-            # self.setInfo(str(newState, encoding="utf-8"))
+            self.setInfo(str(newState, encoding="utf-8"))
 
     def updateInfoFromDev(self, c, value):
+        print(value)
         self.emit_bleMessageChange(bytes(value, "utf-8"))
 
     def characteristicRead(self, c, value):
@@ -99,18 +98,16 @@ class DeviceHandler(BluetoothBaseClass):
     def characteristicWrittenFun(self, c, value):
         self.setInfo("characteristicWrittenFun " + value)
 
-    def characteristicWrite(self, service, character, value):
-        service.writeCharacteristic(character, value, QLowEnergyService.WriteMode.WriteWithoutResponse)
+    def characteristicWrite(self, byte_value):
+        self.m_service.writeCharacteristic(self.setChar, byte_value, QLowEnergyService.WriteMode.WriteWithoutResponse)
 
     def searchCharacteristic(self):
-        print(self.m_service == self.sender())
-        service = self.sender()
-        chars = service.characteristics()
+        chars = self.m_service.characteristics()
         for char in chars:
             pass
 
-        self.setChar = service.characteristic(QBluetoothUuid("00010203-0405-0607-0809-0a0b0c0d2b11"))
-        self.getChar = service.characteristic(QBluetoothUuid("00010203-0405-0607-0809-0a0b0c0d2b10"))
+        self.setChar = self.m_service.characteristic(QBluetoothUuid("00010203-0405-0607-0809-0a0b0c0d2b11"))
+        self.getChar = self.m_service.characteristic(QBluetoothUuid("00010203-0405-0607-0809-0a0b0c0d2b10"))
 
         if self.getChar.isValid() is False:
             self.setError("getChar not found.")
@@ -118,18 +115,22 @@ class DeviceHandler(BluetoothBaseClass):
         if self.setChar.isValid() is False:
             self.setError("setChar not found.")
 
-        self.m_notificationDesc = self.getChar.descriptor(QBluetoothUuid.DescriptorType.ClientCharacteristicConfiguration)
+        self.m_notificationDesc = self.getChar.descriptor(QBluetoothUuid(QBluetoothUuid.DescriptorType.ClientCharacteristicConfiguration))
 
         if self.m_notificationDesc.isValid():
-            self.m_service.writeCharacteristic(self.m_notificationDesc, QByteArray(bytes("0100", "utf-8")))
+            self.m_service.writeDescriptor(self.m_notificationDesc, QByteArray(bytes("0100", "utf-8")))
         else:
             self.setError("m_notificationDesc is null.")
 
     def disconnectDevice(self):
         if self.m_control:
             self.m_control.disconnectFromDevice()
-            self.m_control.clear()
+            del self.m_control
             self.m_control = None
+            del self.getChar
+            del self.setChar
+            self.getChar = None
+            self.setChar = None
 
     def disconnectService(self):
         if self.m_notificationDesc:

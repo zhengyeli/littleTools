@@ -1,4 +1,4 @@
-from PyQt6.QtBluetooth import QBluetoothDeviceDiscoveryAgent, QBluetoothDeviceInfo
+from PyQt6.QtBluetooth import QBluetoothDeviceDiscoveryAgent, QBluetoothDeviceInfo, QLowEnergyController
 from PyQt6.QtCore import pyqtSignal
 
 from module.LowPowerBlueTooth.api.deviceHandler import DeviceHandler
@@ -22,6 +22,10 @@ class DeviceFinder(DeviceHandler):
         if device.coreConfigurations() == QBluetoothDeviceInfo.CoreConfiguration.LowEnergyCoreConfiguration:
             self.setInfo(device.name())
             self.signal_devicefound.emit(device)
+            # fixme
+            if device.name() == "ihoment_H7171_A883":
+                self.stopSearch()
+                self.connectToDevice(device.name())
 
     def scanError(self, error):
         if error == QBluetoothDeviceDiscoveryAgent.Error.PoweredOffError:
@@ -47,9 +51,8 @@ class DeviceFinder(DeviceHandler):
         self.setInfo("Stop scan")
         self.m_deviceDiscoveryAgent.stop()
 
-    def connectToService(self, name):
+    def connectToDevice(self, name):
         self.m_deviceDiscoveryAgent.stop()
-        print(len(self.m_deviceDiscoveryAgent.discoveredDevices()))
         for device in self.m_deviceDiscoveryAgent.discoveredDevices():
             if device.name() == name:
                 self.m_deviceHandler.setDevice(device)

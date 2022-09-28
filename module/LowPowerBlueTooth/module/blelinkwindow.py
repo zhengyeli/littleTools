@@ -154,8 +154,7 @@ class blelinkwindow():
 
     def sendButton_clicked(self):
         data = self.text_ble_send.text()
-
-        self.superClass.ble_send(data)
+        self.superClass.govee_ble_send(data)
 
     def disconButton_clicked(self):
         if self.timer:
@@ -179,9 +178,9 @@ class blelinkwindow():
         if sku == "stop":
             self.button_scan_sku.setText("scan")
             self.superClass.deviceFinder.stopSearch()
-        self.superClass.deviceFinder.connectToService(item.text())
+        self.superClass.deviceFinder.connectToDevice(item.text())
 
     def keepalive(self):
-        self.superClass.ble_send("aa01")
+        self.superClass.govee_ble_send("aa01")
 
     
