@@ -22,10 +22,6 @@ class DeviceFinder(DeviceHandler):
         if device.coreConfigurations() == QBluetoothDeviceInfo.CoreConfiguration.LowEnergyCoreConfiguration:
             self.setInfo(device.name())
             self.signal_devicefound.emit(device)
-            # fixme
-            if device.name() == "ihoment_H7171_A883":
-                self.stopSearch()
-                self.connectToDevice(device.name())
 
     def scanError(self, error):
         if error == QBluetoothDeviceDiscoveryAgent.Error.PoweredOffError:
