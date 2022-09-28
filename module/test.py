@@ -4,15 +4,19 @@ import numpy
 
 from module.Mqtt.pahoMqttClient import govee_mqtt_client
 
-DistanceFilterMaxIndex = 10
-
+DistanceFilterMaxIndex = 5
+calculacy = 0.5
 class test_wave:
     def __init__(self):
         self.lastState = "null"
         self.DistanceFilter = [0] * DistanceFilterMaxIndex
-        self.lastDistance = 0
+        self.lastDistance = 3
+        self.newDistance = 3
         self.dataReadyFlag = False
+        # 静止持续次数
+        self.occRxCount = 0
         self.occMaxTimes = 10
+
         self.DistanceFilter_index = 0
 
         self.mqtt = govee_mqtt_client()
@@ -27,29 +31,54 @@ class test_wave:
             s_tail = re.split(f_tail, s_head[1])
             return s_tail[0]
 
+    def upStream_or_downStream(self, filter):
+        event = " "
+        if self.lastState > self.DistanceFilter[0]:
+            event = "farAway"
+            for i in range(0, DistanceFilterMaxIndex - 5):
+                if self.DistanceFilter[i + 1] > self.DistanceFilter[i] + calculacy:
+                    continue
+                else:
+                    event = " "
+                    break
+        else:
+            event = "getClose"
+            for i in range(0, DistanceFilterMaxIndex - 5):
+                if self.DistanceFilter[i + 1] + calculacy < self.DistanceFilter[i]:
+                    continue
+                else:
+                    event = " "
+                    break
+
+        return event
+
     def getClose_or_farAway_select(self, dis):
         if self.DistanceFilter_index == DistanceFilterMaxIndex:
             self.DistanceFilter_index = 0
-            self.DistanceFilter[self.DistanceFilter_index] = dis
-            aver_distance = numpy.mean(self.DistanceFilter)
-            if aver_distance - self.lastDistance > 2:
+            self.newDistance = numpy.mean(self.DistanceFilter)
+            if self.newDistance - self.lastDistance > calculacy:
                 self.event_triger("farAway")
-            elif self.lastDistance - aver_distance > 2:
+            elif self.lastDistance - self.newDistance > calculacy:
                 self.event_triger("getClose")
+            self.lastDistance = self.newDistance
+            # event = self.upStream_or_downStream(self.DistanceFilter)
 
-            self.lastDistance = aver_distance
         else:
             self.DistanceFilter[self.DistanceFilter_index] = dis
             self.DistanceFilter_index += 1
 
     def serial_data_handle(self, string):
         if 'occ' in string:
-            if self.lastState != 'occ':
-                self.lastState = 'occ'
-                self.event_triger("min")
-            elif self.lastState == 'null':
-                self.lastState = 'occ'
-                self.event_triger("on")
+            self.occRxCount += 1
+            if self.occRxCount > self.occMaxTimes:
+                if self.lastState != 'occ':
+                    self.lastState = 'occ'
+                    self.event_triger("min")
+                elif self.lastState == 'null':
+                    self.lastState = 'occ'
+                    self.event_triger("on")
+                else:
+                    pass
             else:
                 pass
 
@@ -71,8 +100,10 @@ class test_wave:
                 self.event_triger("off")
 
     def event_triger(self, event):
+
         mqtt_json = " "
         print("cur state is " + event)
+
         if event == "on":
             mqtt_json = "{\
                         \"msg\": {\
