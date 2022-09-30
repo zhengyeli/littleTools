@@ -44,11 +44,12 @@ class FrmComTool(QObject, Ui_frmComTool):
     # 信号 . 发送到外面控件
     emit_open_com_successful = pyqtSignal()
 
-    def __init__(self, ui):
+    def __init__(self, ui, handle):
         super().__init__()
-
+        self.mainPtr = handle
+        self.plot = self.mainPtr.plot
         if test_wave_enable:
-            self.test = test_wave()
+            self.test = test_wave(self.plot)
 
         self.udpEventTuple = None
         self.m_udpSocketlist = None
@@ -914,8 +915,8 @@ class FrmComTool(QObject, Ui_frmComTool):
         if self.tcpOk:
             self.tcpsocket.write(data)
 
-    def module_init(self):
-        pass
+    def module_fromMain_init(self, plot):
+        self.plot = plot
 
     def module_serialports_init(self):
         pass

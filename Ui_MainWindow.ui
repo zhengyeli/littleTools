@@ -215,7 +215,7 @@ padding-bottom:0px;
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page1">
        <layout class="QHBoxLayout" name="horizontalLayout">
@@ -265,15 +265,7 @@ padding-bottom:0px;
        </layout>
       </widget>
       <widget class="QWidget" name="page3">
-       <layout class="QVBoxLayout" name="verticalLayout_5">
-        <item>
-         <widget class="QLabel" name="lab3">
-          <property name="text">
-           <string>TextLabel</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <layout class="QVBoxLayout" name="verticalLayout_5"/>
       </widget>
       <widget class="QWidget" name="page4">
        <layout class="QVBoxLayout" name="verticalLayout_4">

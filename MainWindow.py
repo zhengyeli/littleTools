@@ -9,6 +9,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from module.LowPowerBlueTooth import bleMainWin
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
 from module.SerialPort.FrmComTool import FrmComTool
+from module.photograph.graphDraw import BasicArrayPlot, dynamicArrayPlot
 
 
 class MainWindow(QObject, Ui_MainWindow):
@@ -16,9 +17,13 @@ class MainWindow(QObject, Ui_MainWindow):
 
     def __init__(self, ui):
         super().__init__()
+        self.ble = None
+        self.comTool = None
+        self.plot = None
+        
         self.ui = ui
         self.button_init()
-        self.module_init()
+        self.ui.stackedWidget.setCurrentIndex(0)
         # self.ui = Ui_MainWindow(self.ui)
 
     def eventFilter(self, obj, event):
@@ -57,21 +62,3 @@ class MainWindow(QObject, Ui_MainWindow):
         elif name == "用户退出":
             exit(0)
 
-    def module_init(self):
-        self.module_serialports_init()
-        self.module_lowPowerBle_init()
-
-    # 串口
-    def module_serialports_init(self):
-        self.ui.tabWidget.removeTab(0)
-        self.module_serialports_addPort()
-
-    def module_serialports_addPort(self):
-        widget = QtWidgets.QWidget()
-        w = Ui_frmComTool()
-        w.setupUi(widget)
-        comTool = FrmComTool(w)
-        self.ui.tabWidget.addTab(widget, "comx")
-
-    def module_lowPowerBle_init(self):
-        bleMainWin.BleMainWin(self.ui.page2)

@@ -144,9 +144,6 @@ class Ui_MainWindow(object):
         self.page3.setObjectName("page3")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.page3)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.lab3 = QtWidgets.QLabel(self.page3)
-        self.lab3.setObjectName("lab3")
-        self.verticalLayout_5.addWidget(self.lab3)
         self.stackedWidget.addWidget(self.page3)
         self.page4 = QtWidgets.QWidget()
         self.page4.setObjectName("page4")
@@ -168,7 +165,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -180,5 +177,4 @@ class Ui_MainWindow(object):
         self.btnHelp.setText(_translate("MainWindow", "调试帮助"))
         self.btnExit.setText(_translate("MainWindow", "用户退出"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "页"))
-        self.lab3.setText(_translate("MainWindow", "TextLabel"))
         self.lab4.setText(_translate("MainWindow", "调试帮助"))

@@ -7,6 +7,7 @@ from module.LowPowerBlueTooth.api.BluetoothBaseClass import BluetoothBaseClass
 
 class DeviceHandler(BluetoothBaseClass):
     emit_bleMessageChange = pyqtSignal(bytes)
+    emit_bleConnectSuccessful = pyqtSignal()
 
     def __init__(self, bthBaseWidget):
         super().__init__(bthBaseWidget)
@@ -67,14 +68,11 @@ class DeviceHandler(BluetoothBaseClass):
     def serviceDiscovered(self, gatt):
         self.setInfo("serviceDiscovered:" + gatt.toString())
 
-    def confirmedDescriptorWrite(self, LowEnergyDescriptor, value):
-        pass
-        # if LowEnergyDescriptor.isValid() and LowEnergyDescriptor == self.m_notificationDesc and value == "0000":
-        #     self.m_control.disconnectFromDevice()
-        #     self.sender().clear()
+    def confirmedDescriptorWrite(self, descriptor, value):
+        self.setInfo("descriptor change:" + str(value))
 
     def descriptorRead(self, d, value):
-        self.setInfo("descriptorRead ")
+        self.setInfo("descriptorRead " + str(value))
 
     def serviceStateChanged(self, newState):
         if newState == QLowEnergyService.ServiceState.RemoteServiceDiscovering:
@@ -82,29 +80,41 @@ class DeviceHandler(BluetoothBaseClass):
         elif newState == QLowEnergyService.ServiceState.RemoteServiceDiscovered:
             self.setInfo("QLowEnergyService.ServiceState.RemoteServiceDiscovered")
             self.searchCharacteristic()
+            # 终于是发现问题：不能在服务发现完成的槽函数中直接进行发现特性。
         elif newState == QLowEnergyService.ServiceState.RemoteService:
             self.setInfo("QLowEnergyService.ServiceState.RemoteService")
             QTimer.singleShot(0, self.serviceScanDone)
         else:
-            self.setInfo(str(newState, encoding="utf-8"))
+            self.setInfo(str(newState))
 
     def updateInfoFromDev(self, c, value):
         print(value)
         self.emit_bleMessageChange(bytes(value, "utf-8"))
 
     def characteristicRead(self, c, value):
-        self.setInfo("characteristicRead " + value)
+        self.setInfo("characteristicRead " + str(value))
 
     def characteristicWrittenFun(self, c, value):
-        self.setInfo("characteristicWrittenFun " + value)
+        self.setInfo("characteristicWrittenFun " + str(value))
 
     def characteristicWrite(self, byte_value):
-        self.m_service.writeCharacteristic(self.setChar, byte_value, QLowEnergyService.WriteMode.WriteWithoutResponse)
+        if self.m_service is not None:
+            if self.setChar is not None:
+                self.m_service.writeCharacteristic(self.setChar, byte_value, QLowEnergyService.WriteMode.WriteWithoutResponse)
+            else:
+                self.setError("write characteristic not valid")
+        else:
+            self.setError("service is not valid")
 
     def searchCharacteristic(self):
         chars = self.m_service.characteristics()
         for char in chars:
-            pass
+            d = char.descriptor(QBluetoothUuid(QBluetoothUuid.DescriptorType.ClientCharacteristicConfiguration))
+
+            if d.isValid() is False:
+                continue
+
+            self.m_service.writeDescriptor(d, bytes.fromhex("0100"))
 
         self.setChar = self.m_service.characteristic(QBluetoothUuid("00010203-0405-0607-0809-0a0b0c0d2b11"))
         self.getChar = self.m_service.characteristic(QBluetoothUuid("00010203-0405-0607-0809-0a0b0c0d2b10"))
@@ -115,12 +125,18 @@ class DeviceHandler(BluetoothBaseClass):
         if self.setChar.isValid() is False:
             self.setError("setChar not found.")
 
-        self.m_notificationDesc = self.getChar.descriptor(QBluetoothUuid(QBluetoothUuid.DescriptorType.ClientCharacteristicConfiguration))
+        self.emit_bleConnectSuccessful.emit()
+
+        self.m_notificationDesc = self.setChar.descriptor(QBluetoothUuid(
+            QBluetoothUuid.DescriptorType.ClientCharacteristicConfiguration
+        ))
 
         if self.m_notificationDesc.isValid():
-            self.m_service.writeDescriptor(self.m_notificationDesc, QByteArray(bytes("0100", "utf-8")))
+            # QLowEnergyService.writeDescriptor()
+            self.m_service.writeDescriptor(self.m_notificationDesc, bytes.fromhex("0100"))
         else:
             self.setError("m_notificationDesc is null.")
+        self.m_service.readDescriptor(self.m_notificationDesc)
 
     def disconnectDevice(self):
         if self.m_control:
@@ -134,11 +150,11 @@ class DeviceHandler(BluetoothBaseClass):
 
     def disconnectService(self):
         if self.m_notificationDesc:
-            self.m_service.writeDescriptor(self.m_notificationDesc, QByteArray("0000"))
+            self.m_service.writeDescriptor(self.m_notificationDesc, bytes.fromhex("0000"))
 
     def continueConnectService(self):
         if self.m_notificationDesc:
-            self.m_service.writeDescriptor(self.m_notificationDesc, QByteArray("0100"))
+            self.m_service.writeDescriptor(self.m_notificationDesc, bytes.fromhex("0100"))
 
 
 

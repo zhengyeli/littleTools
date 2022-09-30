@@ -3,11 +3,12 @@ import re
 import numpy
 
 from module.Mqtt.pahoMqttClient import govee_mqtt_client
+from module.photograph.graphDraw import BasicArrayPlot, dynamicArrayPlot
 
-DistanceFilterMaxIndex = 5
+DistanceFilterMaxIndex = 8
 calculacy = 0.5
 class test_wave:
-    def __init__(self):
+    def __init__(self, plot):
         self.lastState = "null"
         self.DistanceFilter = [0] * DistanceFilterMaxIndex
         self.lastDistance = 3
@@ -19,7 +20,9 @@ class test_wave:
 
         self.DistanceFilter_index = 0
 
-        self.mqtt = govee_mqtt_client()
+        # self.mqtt = govee_mqtt_client()
+
+        self.Myplot = plot
 
     def split_log(self, f_line, f_head, f_tail):
         s_head = f_line.find(f_head)
@@ -68,6 +71,7 @@ class test_wave:
             self.DistanceFilter_index += 1
 
     def serial_data_handle(self, string):
+        dis = self.split_log(string, "dis=", '\n')
         if 'occ' in string:
             self.occRxCount += 1
             if self.occRxCount > self.occMaxTimes:
@@ -91,13 +95,15 @@ class test_wave:
                 self.event_triger("on")
             else:
                 pass
-            dis = self.split_log(string, "dis=", '\n')
+
             self.getClose_or_farAway_select(float(dis))
 
         elif 'null' in string:
             if self.lastState != 'null':
                 self.lastState = 'null'
                 self.event_triger("off")
+
+        self.Myplot.update_plot(float(dis))
 
     def event_triger(self, event):
 
@@ -199,4 +205,5 @@ class test_wave:
         else:
             pass
         if mqtt_json != " ":
-            self.mqtt.send(mqtt_json)
+            pass
+            # self.mqtt.send(mqtt_json)

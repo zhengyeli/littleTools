@@ -8,7 +8,12 @@ from PyQt6.QtCore import QSettings, Qt, QTimer
 class blelinkwindow():
     def __init__(self, blemainWin):
         super().__init__()
-        self.timer = QTimer()
+
+        self.timer_keepAlive = QTimer()
+        self.timer_keepAlive.setInterval(2000)
+        self.timer_keepAlive.timeout.connect(self.keepalive)
+
+        self.toolBtn = None
         self.text_sku = None
         self.dockblelink = None
         self.sku_list = None
@@ -116,16 +121,18 @@ class blelinkwindow():
         self.button_continue.clicked.connect(self.continueButton_clicked)
         self.button_discon.clicked.connect(self.disconButton_clicked)
         self.button_clear.clicked.connect(self.clearButton_clicked)
+
         self.superClass.deviceFinder.signal_devicefound.connect(self.sku_list_item_append)
+        self.superClass.deviceHandler.emit_bleConnectSuccessful.connect(self.bleDeviceConnectedOk)
 
         self.dockblelink.setWidget(dockWidgetContents)
         # 进行布局
         self.superClass.superWidget.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, self.dockblelink)
         
-        self.toolBtn = QtWidgets.QToolButton() # 创建QToolButton
+        self.toolBtn = QtWidgets.QToolButton()  # 创建QToolButton
         self.toolBtn.setText(self.dockblelink.windowTitle())
         self.toolBtn.clicked.connect(self.closeWindow)
-        self.superClass.toolbar.addWidget(self.toolBtn) # 向工具栏添加QToolButton按钮
+        self.superClass.toolbar.addWidget(self.toolBtn)  # 向工具栏添加QToolButton按钮
         
         self.dockblelink.setVisible(True)
 
@@ -135,7 +142,7 @@ class blelinkwindow():
             self.sku_list.addItem(device.name())
 
     def closeWindow(self):
-        self.superClass.closeAllWindow()
+        # self.superClass.closeAllWindow()
         self.dockblelink.setVisible(bool(1 - self.dockblelink.isVisible()))
 
     def scanButton_clicked(self):
@@ -154,11 +161,11 @@ class blelinkwindow():
 
     def sendButton_clicked(self):
         data = self.text_ble_send.text()
-        self.superClass.govee_ble_send(data)
+        self.superClass.govee_ble_string_send(data)
 
     def disconButton_clicked(self):
-        if self.timer:
-            self.timer.stop()
+        if self.timer_keepAlive:
+            self.timer_keepAlive.stop()
         self.superClass.deviceHandler.disconnect()
         self.superClass.setInfo("disconnected.")
 
@@ -180,7 +187,15 @@ class blelinkwindow():
             self.superClass.deviceFinder.stopSearch()
         self.superClass.deviceFinder.connectToDevice(item.text())
 
+    def bleDeviceConnectedOk(self):
+        self.timer_keepAlive.start()
+
     def keepalive(self):
-        self.superClass.govee_ble_send("aa01")
+        print("keep alive.")
+        self.superClass.govee_ble_string_send("aa01")
+
+    def ble_rx_data_func(self, bytesArray):
+        self.cmd_receive.setText(str(bytesArray))
+
 
     

@@ -165,7 +165,7 @@ class Ui_frmComTool(object):
         sizePolicy.setHeightForWidth(self.labDataBit.sizePolicy().hasHeightForWidth())
         self.labDataBit.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
-        font.setPointSize(11)
+        font.setPointSize(9)
         self.labDataBit.setFont(font)
         self.labDataBit.setObjectName("labDataBit")
         self.gridLayout_5.addWidget(self.labDataBit, 2, 0, 1, 1)
@@ -286,7 +286,7 @@ class Ui_frmComTool(object):
         self.gridLayout_3.addWidget(self.widgetRight, 0, 1, 1, 1)
 
         self.retranslateUi(frmComTool)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(frmComTool)
 
     def retranslateUi(self, frmComTool):
@@ -325,12 +325,3 @@ class Ui_frmComTool(object):
         self.cboxMode.setItemText(3, _translate("frmComTool", "Udp_Server"))
         self.btnStart.setText(_translate("frmComTool", "启动"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("frmComTool", "网络"))
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    Window = QtWidgets.QMainWindow()
-    ui = Ui_frmComTool()
-    ui.setupUi(Window)
-    Window.show()
-    sys.exit(app.exec())

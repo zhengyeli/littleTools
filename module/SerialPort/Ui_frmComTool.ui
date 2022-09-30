@@ -107,7 +107,7 @@
          <enum>QTabWidget::South</enum>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -317,7 +317,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>11</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">

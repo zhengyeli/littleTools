@@ -3,6 +3,8 @@ from PyQt6.QtWidgets import QMainWindow, QDockWidget, QTextEdit, QToolBar, QTool
 
 from module.LowPowerBlueTooth.api.BluetoothBaseClass import BluetoothBaseClass
 from module.LowPowerBlueTooth.module.blelinkwindow import blelinkwindow
+from module.LowPowerBlueTooth.module.bleuartwindow import bleUartWindow
+from module.LowPowerBlueTooth.module.blewifiwindow import bleconfigwifi
 from module.LowPowerBlueTooth.ui.Ui_BleMainWin import Ui_BleMainWin
 from module.LowPowerBlueTooth.api.deviceHandler import DeviceHandler
 from module.LowPowerBlueTooth.api.deviceFinder import DeviceFinder
@@ -10,6 +12,9 @@ from PyQt6 import QtWidgets
 
 
 class BleMainWin(QMainWindow):
+    def __del__(self):
+        self.saveSettings()
+
     def __init__(self, widget):
         super().__init__()
         self.superWidget = None
@@ -56,7 +61,7 @@ class BleMainWin(QMainWindow):
         self.deviceHandler = self.deviceFinder.m_deviceHandler
 
         # self.deviceFinder.scanDeviceResult.connect(self.addBleDevToList)
-        # self.deviceHandler.bleMessageChange.connect(self, ble_rx_data_func)
+        self.deviceHandler.emit_bleMessageChange.connect(self.ble_rx_data_func)
         # self.deviceHandler.connectSuccess.connect(self.bleConnectSuccess)
         # self.deviceHandler.disconnectOccur.connect(self.disconButton_clicked)
 
@@ -64,8 +69,9 @@ class BleMainWin(QMainWindow):
         self.blelink = blelinkwindow(self)
         # self.blesku = bleskumsghandle()
         # self.SocketClient = tcpSocketClient(self.superWidget)
-        # self.bleuart = bleUartWindow(self.superWidget)
+        self.bleuart = bleUartWindow(self)
         # self.bleSensor = bleSensorWindow(self.superWidget)
+        self.blewifi = bleconfigwifi(self)
 
         self.text_info.append("tip :\n"
                 "   window              usage        \n"
@@ -81,9 +87,13 @@ class BleMainWin(QMainWindow):
 
         dockList = self.superWidget.findChildren(QtWidgets.QDockWidget)
         for dock in dockList:
-            dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable | QDockWidget.DockWidgetFeature.DockWidgetMovable | QDockWidget.DockWidgetFeature.DockWidgetFloatable)
+            dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
+                             QDockWidget.DockWidgetFeature.DockWidgetMovable |
+                             QDockWidget.DockWidgetFeature.DockWidgetFloatable)
 
         self.readSettings()
+        self.closeAllWindow()
+        self.DockwidgetInfo_btn_click()
 
     def setInfo(self, string):
         if self.text_info:
@@ -99,15 +109,22 @@ class BleMainWin(QMainWindow):
 
     def closeAllWindow(self):
         dockList = self.superWidget.findChildren(QDockWidget)
-        # for dock in dockList:
-        #     dock.setVisible(False)
-        #
-        # toolBtnList = self.toolbar.findChildren(QToolButton)
-        # for toolBtn in toolBtnList:
-        #     toolBtn.setChecked(True)
+        for dock in dockList:
+            dock.setVisible(False)
+
+        toolBtnList = self.toolbar.findChildren(QToolButton)
+        for toolBtn in toolBtnList:
+            toolBtn.setChecked(False)
+
+    def saveSettings(self):
+        settings = QSettings("Software Inc.", "Icon Editor")
+        settings.beginGroup("mainWindow")
+        settings.setValue("geometry", self.superWidget.saveGeometry())
+        settings.setValue("size", self.superWidget.size())
+        settings.setValue("state", self.superWidget.saveState())
+        settings.endGroup()
 
     def readSettings(self):
-
         settings = QSettings("Software Inc.", "Icon Editor")
         settings.beginGroup("mainWindow")
         self.superWidget.restoreGeometry(settings.value("geometry"))
@@ -130,7 +147,13 @@ class BleMainWin(QMainWindow):
         string = string.replace(' ', '')
         self.deviceHandler.characteristicWrite(bytes.fromhex(string))
 
-    def govee_ble_send(self, string):
+    def govee_ble_charArray_send(self, array):
+        array[19] = self.Govee_Utils_GetBccCode(array)
+        byteArray = bytearray(array)
+        hex_string = bytearray.hex(byteArray)
+        self.ble_bytes_send(bytes.fromhex(hex_string))
+
+    def govee_ble_string_send(self, string):
         hex = bytes.fromhex(string)
         send_hex = [0] * 20
         for i in range(0, len(hex)):
@@ -139,6 +162,11 @@ class BleMainWin(QMainWindow):
         byteArray = bytearray(send_hex)
         hex_string = bytearray.hex(byteArray)
         self.ble_bytes_send(bytes.fromhex(hex_string))
+
+    def ble_rx_data_func(self, bytesArray):
+        self.setInfo(str(bytesArray))
+        self.blelink.ble_rx_data_func(bytesArray)
+
 
     def Govee_Utils_GetBccCode(self, data_array):
         ret = 0
