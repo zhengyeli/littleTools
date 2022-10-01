@@ -5,3 +5,6 @@ __pycache__/*.pyc
 */*/__pycache__/*.pyc
 */*/*/__pycache__/*.pyc
 *.txt
+*.spec
+build/
+dist/

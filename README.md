@@ -30,7 +30,15 @@ program: D:\python3.10\Lib\site-packages\PySide6\designer.exe
 arguments: 
 working directory:$FileDir$
 
+[pyinstaller]
+program: E:\Python3.9\Scripts\pyinstaller.exe
+arguments: -D -w $FileName$
+working directory:$FileDir$
 
+[PYRCC]
+program: E:\Python3.9\Scripts\pyside6-rcc.exe
+arguments: $FileName$ -o $FileNameWithoutExtension$.py
+working directory:$FileDir$
 3.  xxxx
 
 #### 使用说明

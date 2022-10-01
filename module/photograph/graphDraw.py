@@ -1,14 +1,8 @@
 from time import perf_counter
 
-import pyqtgraph as pyqtgraph
-import pyqtgraph.examples
 import numpy as np
-
 import pyqtgraph as pg
 from PyQt6.QtCore import QTimer
-from PyQt6.QtWidgets import QWidget
-from pyqtgraph import GraphicsLayoutWidget
-from pyqtgraph.Qt import QtCore
 
 
 # 描绘静态数据
