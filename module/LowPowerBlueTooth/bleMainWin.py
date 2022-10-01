@@ -84,6 +84,7 @@ class BleMainWin(QMainWindow):
 
         self.superWidget.setStatusBar(None)
         self.superWidget.setMenuBar(None)
+        self.superWidget.centralWidget().close()
 
         dockList = self.superWidget.findChildren(QtWidgets.QDockWidget)
         for dock in dockList:
@@ -100,12 +101,8 @@ class BleMainWin(QMainWindow):
             self.text_info.append(string)
 
     def DockwidgetInfo_btn_click(self):
-        self.closeAllWindow()
-        if self.DockwidgetInfo.isVisible():
-            self.DockwidgetInfo.setVisible(False)
-        else:
-            self.DockwidgetInfo.setVisible(True)
-        self.DockwidgetInfo_toolBtn.setChecked(True)
+        # self.closeAllWindow()
+        self.DockwidgetInfo.setVisible(bool(1 - self.DockwidgetInfo.isVisible()))
 
     def closeAllWindow(self):
         dockList = self.superWidget.findChildren(QDockWidget)

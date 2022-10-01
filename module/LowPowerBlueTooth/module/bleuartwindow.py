@@ -74,8 +74,9 @@ class bleUartWindow:
         self.last_dir = settings.value("config_dir")
         settings.endGroup()
 
-        if len(self.last_dir) != 0:
-            self.loadFile(True)
+        if self.last_dir is not None:
+            if len(self.last_dir) != 0:
+                self.loadFile(True)
 
     '''  dynamic add button '''
     def addButton(self):
