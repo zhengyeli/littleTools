@@ -6,6 +6,7 @@ from module.LowPowerBlueTooth.bleMainWin import BleMainWin
 
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
 from module.SerialPort.FrmComTool import FrmComTool
+from module.iotLogAnalyzer.main import govee_mqtt_log
 from module.photograph.graphDraw import BasicArrayPlot, dynamicArrayPlot
 
 
@@ -13,8 +14,10 @@ def module_init(handle):
     module_photoGraph_init(handle)
     module_serialports_init(handle)
     module_lowPowerBle_init(handle)
+    module_logAnalyse_init(handle)
 
-
+def module_logAnalyse_init(handle):
+    govee_mqtt_log(handle)
 
 # 串口
 def module_serialports_init(handle):

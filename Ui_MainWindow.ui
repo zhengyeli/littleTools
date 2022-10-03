@@ -121,7 +121,7 @@ background-color:transparent;
              </sizepolicy>
             </property>
             <property name="text">
-             <string>警情查询</string>
+             <string>图表显示</string>
             </property>
             <property name="icon">
              <iconset resource="image.qrc">
@@ -147,7 +147,7 @@ background-color:transparent;
              <string notr="true"/>
             </property>
             <property name="text">
-             <string>调试帮助</string>
+             <string>日志分析</string>
             </property>
             <property name="icon">
              <iconset resource="image.qrc">
@@ -268,18 +268,7 @@ padding-bottom:0px;
        <layout class="QVBoxLayout" name="verticalLayout_5"/>
       </widget>
       <widget class="QWidget" name="page4">
-       <layout class="QVBoxLayout" name="verticalLayout_4">
-        <item>
-         <widget class="QLabel" name="lab4">
-          <property name="text">
-           <string>调试帮助</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <layout class="QVBoxLayout" name="verticalLayout_4"/>
       </widget>
      </widget>
     </item>

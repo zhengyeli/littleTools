@@ -147,7 +147,7 @@ class FrmComTool(QObject, Ui_frmComTool):
         self.ui.btnScan.clicked.connect(self.comTool_AvailableCom_Scan)
         self.ui.btnSend.clicked.connect(self.comTool_btnSendData)
         self.ui.btnOpen.clicked.connect(self.ComOpen_Button_Clicked)
-        self.com.readyRead.connect(lambda: self.comTool_Data_readFromCom())
+        self.com.readyRead.connect(self.comTool_Data_readFromCom)
 
         # self.ui.txtMain.installEventFilter(self.ui.txtMain)
 

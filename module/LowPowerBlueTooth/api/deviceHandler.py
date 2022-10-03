@@ -89,7 +89,7 @@ class DeviceHandler(BluetoothBaseClass):
 
     def updateInfoFromDev(self, c, value):
         print(value)
-        self.emit_bleMessageChange(bytes(value, "utf-8"))
+        self.emit_bleMessageChange.emit(bytes(value, "utf-8"))
 
     def characteristicRead(self, c, value):
         self.setInfo("characteristicRead " + str(value))

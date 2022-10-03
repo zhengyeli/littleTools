@@ -55,9 +55,9 @@ class MainWindow(QObject, Ui_MainWindow):
             self.ui.stackedWidget.setCurrentIndex(0)
         elif name == "蓝牙调试":
             self.ui.stackedWidget.setCurrentIndex(1)
-        elif name == "警情查询":
+        elif name == "图表显示":
             self.ui.stackedWidget.setCurrentIndex(2)
-        elif name == "调试帮助":
+        elif name == "日志分析":
             self.ui.stackedWidget.setCurrentIndex(3)
         elif name == "用户退出":
             exit(0)
