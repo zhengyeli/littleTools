@@ -1,6 +1,9 @@
 import re
 
 import numpy
+from PyQt6 import QtGui
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QWidget, QLabel, QGridLayout
 
 from module.Mqtt.pahoMqttClient import govee_mqtt_client
 from module.photograph.graphDraw import BasicArrayPlot, dynamicArrayPlot
@@ -23,6 +26,23 @@ class test_wave:
         # self.mqtt = govee_mqtt_client()
 
         self.Myplot = plot
+
+        self.widget = QWidget()
+        self.widget.setMinimumWidth(800)
+        self.widget.setMinimumHeight(600)
+        self.layout = QGridLayout(self.widget)
+        self.label = QLabel()
+        font = QtGui.QFont()
+        font.setPointSize(100)
+        self.label.setFont(font)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label1 = QLabel()
+        self.label1.setFont(font)
+        self.label1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.layout.addWidget(self.label, 0, 0)
+        self.layout.addWidget(self.label1, 1, 0)
+        self.widget.setLayout(self.layout)
+        self.widget.show()
 
     def split_log(self, f_line, f_head, f_tail):
         s_head = f_line.find(f_head)
@@ -70,7 +90,8 @@ class test_wave:
             self.DistanceFilter[self.DistanceFilter_index] = dis
             self.DistanceFilter_index += 1
 
-    def serial_data_handle(self, string):
+    # 硒杰微
+    def xijiewei_serial_data_handle(self, string):
         dis = self.split_log(string, "dis=", '\n')
         if 'occ' in string:
             self.occRxCount += 1
@@ -104,6 +125,31 @@ class test_wave:
                 self.event_triger("off")
 
         self.Myplot.update_plot(float(dis))
+
+    # 隔空
+    def gekong_serial_data_handle(self, string):
+        string_lists = re.split("\r\n", string)
+        for strings in string_lists:
+            print(strings)
+            string_list = re.split(",", strings)
+            if string_list[0] == '$JYBSS':
+                if len(string_list) > 2:
+                    if int(string_list[1]) == 1:
+                        self.label.setText("有人")
+                        self.label.setStyleSheet("QLabel{background-color:rgb(0,255,0);}")
+                    else:
+                        self.label.setText("无人")
+                        self.label.setStyleSheet("QLabel{background-color:rgb(255,0,0);}")
+
+            elif string_list[0] == '$JYRPO':
+                if len(string_list) > 4:
+                    if float(string_list[3]) > 0.00001:
+                        self.label1.setText(string_list[3])
+
+                        self.Myplot.update_plot(float(string_list[3]))
+
+    def serial_data_handle(self, string):
+        self.gekong_serial_data_handle(string)
 
     def event_triger(self, event):
 

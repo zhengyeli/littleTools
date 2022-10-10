@@ -48,7 +48,7 @@ class dynamicArrayPlot:
         # 3) Plot in chunks, adding one new plot curve for every 100 samples
         self.chunkSize = 100
         # Remove chunks after we have 10
-        self.maxChunks = 10
+        self.maxChunks = 20
         self.startTime = perf_counter()
         # win.nextRow()
         self.p5 = self.win.addPlot(colspan=2, pen=(0, 0, 0))

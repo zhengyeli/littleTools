@@ -7,7 +7,7 @@
 
 
 from PyQt6 import QtCore, QtGui, QtWidgets
-import image
+import image.image
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -97,16 +97,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.btnExit.sizePolicy().hasHeightForWidth())
         self.btnExit.setSizePolicy(sizePolicy)
-        self.btnExit.setStyleSheet("QToolButton{\n"
-"margin-right:0px;\n"
-"border-radius:4px;\n"
-"background-color:transparent;\n"
-"border:0px;\n"
-"padding-left:0px;\n"
-"padding-right:0px;\n"
-"padding-top:0px;\n"
-"padding-bottom:0px;\n"
-"}")
+        self.btnExit.setStyleSheet("")
         icon4 = QtGui.QIcon()
         icon4.addPixmap(QtGui.QPixmap(":/image/main_exit.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.btnExit.setIcon(icon4)
