@@ -3,17 +3,64 @@ import datetime
 import base64
 import json
 
-from PyQt6.QtCore import QFile, QTextStream
-
 LOG_FILE_NAME = "in_log.txt"
 DECODE_FILE_NAME = "out_log.txt"
 
+# 来源解释
+cmd_from = {
+    "u": "安卓(app4.2及以上) 读取或操作",
+    "v": "苹果(app4.2及以上) 读取或操作",
+    "x": "安卓status查询消息（app4.2及以上）",
+    "y": "苹果status查询消息（app4.2及以上）",
+    "f": "alexa",
+    "g": "google",
+    "h": "ifttt",
+    "i": "昼夜节律,联动（未来这俩种也会区分开）",
+    "1": "govee定时开关",
+    "o": "开放api",
+    "s": "siri",
+    "e": "测服自动化压测",
+    "c": "govee home云端特殊控制（H5151）",
+    "no": "其它(可能旧app（包括查询消息）响应，旧版本设备的本地与蓝牙控制，和上线后的status消息)",
+    "old": "部分旧设备旧固件上报(写死的transaction)",
+    "Govee": "部分旧设备旧固件上报(Govee开头的transaction)",
+    "oldA": "[~]物理断电上电控制次数（如果有旧版本，就还包括旧设备的'[~]设备本地控制...+ iot重连上报消息'）",
+    "a": "[~]设备本地控制（蓝牙或物理）+ 设备网络不稳定iot重连后也会上报该消息（未来新通用固件计划把这部分过滤掉）",
+    "k": "ios小组件",
+    "j": "联动",
+}
+
+# stc 来源解释
+stc_from = [
+"MQTT_SOURCE_FROM_EVENTS",
+"MQTT_SOURCE_FROM_MQTT_CONNECT",
+"MQTT_SOURCE_FROM_MQTT_RECONNECT",
+"MQTT_SOURCE_FROM_MASTER_MCU",
+"MQTT_SOURCE_FROM_MASTER_MCU_BUTTON",
+"MQTT_SOURCE_FROM_LOCAL_TIMER",
+"MQTT_SOURCE_FROM_BLE",
+"MQTT_SOURCE_FROM_IOT",
+"MQTT_SOURCE_FROM_UNKNOWN",
+"MQTT_SOURCE_FROM_TEST",
+"MQTT_SOURCE_FROM_ANDROID",
+"MQTT_SOURCE_FROM_IPHONE",
+"MQTT_SOURCE_FROM_AUTO_TEST",
+"MQTT_SOURCE_FROM_ALEXA",
+"MQTT_SOURCE_FROM_GOOGLE",
+"MQTT_SOURCE_FROM_IFTTT",
+"MQTT_SOURCE_FROM_SIRI",
+"MQTT_SOURCE_FROM_OPENAPI",
+"MQTT_SOURCE_FROM_SERVER_TIMER",
+"MQTT_SOURCE_FROM_SERVER_READ",
+]
 
 class Mqtt_Utils:
     log_dict = {}
     log_json = []
 
     def __init__(self):
+        self.out_file_dir = None
+        self.in_file_dir = None
         try:
             self.in_file = open(LOG_FILE_NAME, mode='r', encoding='utf-8')
             self.out_file = open(DECODE_FILE_NAME, mode='w', encoding='utf-8')
@@ -109,6 +156,9 @@ class Mqtt_Utils:
 class Mqtt_Prase:
     utils = Mqtt_Utils()
 
+    def __init__(self):
+        self.log_dev_json = None
+
     def prase_custom_file_set(self, file_dir):
         self.utils.in_file_input(file_dir)
 
@@ -119,15 +169,26 @@ class Mqtt_Prase:
         if "onOff" in i_info:
             self.utils.output_to_file("onoff:" + str(i_info["onOff"]))
 
+        if "sta" in i_info:
+            stc_info = i_info["sta"]
+            if "stc" in stc_info:
+                stc_info_dict = stc_info["stc"]
+                self.utils.output_to_file("stc:" + stc_info_dict)
+
     def prase_timestamp_info(self, timestamp):
-        self.utils.output_to_file('UTC:  ' + str(timestamp))
+        self.utils.output_to_file('UTC:' + str(timestamp))
         # 当地的时间戳
-        self.utils.output_to_file('Now:  ' + str(datetime.datetime.fromtimestamp(timestamp / 1000)))
+        self.utils.output_to_file('Now:' + str(datetime.datetime.fromtimestamp(timestamp / 1000)))
 
     def prase_BLE_decode(self, info):
         for i in info:
             base64_data = base64.b64decode(i)
             self.prase_general_info("", self.utils.format_hex(base64_data))
+            if base64_data[1] == 0x10:
+                humi = base64_data[3] << 16 | base64_data[4] << 8 | base64_data[5]
+                self.utils.output_to_file("ht: " + str(humi))
+                # temper = base64_data[3] << 8 | base64_data[4]
+                # self.utils.output_to_file('temper:' + str(temper) + "F")
 
     def prase_json_info(self):
         try:
@@ -157,8 +218,33 @@ class Mqtt_Prase:
             new_string = self.utils.remove_log(new_string, "\"message\":\"", "\"@timestamp")
             self.utils.renew_log(new_string)
 
+    def prase_data_from_split_handle(self, file_line):
+        if -1 != file_line.find("bizType"):
+            data_from = self.utils.split_log(file_line, "\"from\":\"", "\",\"transaction")
+            if data_from != -1:
+                self.prase_general_info("from:\""+data_from+"\":", cmd_from[data_from])
+
+    def prase_data_cmd_split_handle(self, file_line):
+        if -1 != file_line.find("bizType"):
+            data_cmd = self.utils.split_log(file_line, "\"cmd\":\"", "\",\"from")
+            if data_cmd != -1:
+                self.utils.output_to_file("cmd:\""+data_cmd+"\"")
+
+    def prase_data_stc_split_handle(self, file_line):
+        if -1 != file_line.find("bizType"):
+            data_from = self.utils.split_log(file_line, "\"from\":\"", "\",\"transaction")
+            if data_from != -1:
+                self.prase_general_info("from:\""+data_from+"\":", cmd_from['x'])
+
     def run_prase(self):
         file_all_lines = Mqtt_Prase.utils.in_file.readlines()
         for file_line in file_all_lines:
-            Mqtt_Prase.prase_data_line_split_handle(self, file_line)
-            Mqtt_Prase.prase_json_info(self)
+            if -1 != file_line.find("bizType"):
+                Mqtt_Prase.prase_data_from_split_handle(self, file_line)  # from
+                Mqtt_Prase.prase_data_cmd_split_handle(self, file_line)  # cmd
+                Mqtt_Prase.prase_data_line_split_handle(self, file_line)  # 截取message数据
+                Mqtt_Prase.prase_json_info(self)  # 解析message数据
+                self.utils.output_to_file("\n")
+            else:
+                pass
+                # self.utils.out_file.write('Server time:' + file_line)

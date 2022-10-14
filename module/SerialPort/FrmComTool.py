@@ -1,3 +1,4 @@
+import re
 import typing
 from datetime import time
 from distutils.util import strtobool
@@ -15,6 +16,7 @@ from PySide6.QtWidgets import QAbstractSlider
 from module.SerialPort.AppConfig import AppConfig
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
 from module.test import test_wave
+from module.utils import utils
 
 rxBufSize = 512
 
@@ -410,14 +412,23 @@ class FrmComTool(QObject, Ui_frmComTool):
             return
         # data = QByteArray()
         QBA_data = self.com.readAll()
-        Str_data = str(QBA_data, encoding='utf-8')
+
+        if self.AppConfig.HexReceive:
+            Str_data = utils.bytes2hex(bytes(QBA_data))
+        else:
+            try:
+                Str_data = str(QBA_data, encoding='utf-8')
+            except:
+                self.ui.txtMain.append("转字符串失败")
 
         if len(Str_data) == 0:
             return
 
         if test_wave_enable:
-            self.test.serial_data_handle(Str_data)
-            return
+            if self.AppConfig.HexReceive:
+                pass
+            else:
+                self.test.serial_data_handle(Str_data)
 
 
         if "\b \b" in Str_data:  # backspace

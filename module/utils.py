@@ -1,34 +1,44 @@
 class utils:
-    def bytes2hex(self, bytes):
-        return bytes.hex()
+    @staticmethod
+    def bytes2hex(bytesData):
+        return bytes.hex(bytesData, ' ')
 
-    def hex2bytes(self, hex):
+    @staticmethod
+    def hex2bytes(hex):
         return bytes.fromhex(hex)
 
-    def hex2int(self, hex):
+    @staticmethod
+    def hex2int(hex):
         return int(hex, 16)
 
-    def int2hex(self, int):
+    @staticmethod
+    def int2hex(int):
         return hex(int)
 
-    def int2bytes(self, int):
+    @staticmethod
+    def int2bytes(int):
         return str(int).encode()
 
-    def bytes2int(self, bytes):
+    @staticmethod
+    def bytes2int(bytes):
         return int.from_bytes(bytes)
 
-    def string2bytes(self, string):
+    @staticmethod
+    def string2bytes(string):
         return bytes(string, "utf-8")
 
-    def bytes2string(self, bytes):
+    @staticmethod
+    def bytes2string(bytes):
         return str(bytes, encoding="utf-8")
 
-    def intlist2bytes(self, list):
+    @staticmethod
+    def intlist2bytes(list):
         byteArray = bytearray(list)
         hex_string = bytearray.hex(byteArray)
         return bytes.fromhex(hex_string)
 
-    def string2intlist(self, string):
+    @staticmethod
+    def string2intlist(string):
         hex = bytes.fromhex(string)
         send_hex = [0] * len(hex)
         for i in range(0, len(hex)):

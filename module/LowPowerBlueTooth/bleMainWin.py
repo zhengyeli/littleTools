@@ -26,6 +26,7 @@ class BleMainWin(QMainWindow):
             else:
                 self.superWidget = QMainWindow()
                 widget.layout().addWidget(self.superWidget)
+
         self.ui = Ui_BleMainWin()
         self.ui.setupUi(self.superWidget)
 

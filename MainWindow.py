@@ -43,6 +43,8 @@ class MainWindow(QObject, Ui_MainWindow):
 
         self.mainWidget = None
         self.ui = ui
+
+        self.styleFile = ""
         self.button_init()
         self.ui.stackedWidget.setCurrentIndex(0)
         # self.ui = Ui_MainWindow(self.ui)
@@ -51,11 +53,11 @@ class MainWindow(QObject, Ui_MainWindow):
 
     def widgetRegister(self, w):
         self.mainWidget = w
-        styleFile = "./qss/darkOrange.qss"
-        # styleFile = "./qss/monitor.qss"  # 根据文件路径加载
+        self.styleFile = "./qss/daniu.qss"  # 根据文件路径加载
+        self.windowStyleSheetRefresh()
 
-        qssStyle = CommonHelper.readQssResource(styleFile)
-        print(qssStyle)
+    def windowStyleSheetRefresh(self):
+        qssStyle = CommonHelper.readQssResource(self.styleFile)
         self.mainWidget.setStyleSheet(qssStyle)
 
     def eventFilter(self, obj, event):
@@ -124,7 +126,7 @@ class MainWindow(QObject, Ui_MainWindow):
     def module_serialports_addPort(self, i):
         if self.ui.tabWidget.tabText(i) == "添加":
             self.ui.tabWidget.removeTab(i)
-            widget = QtWidgets.QWidget()
+            widget = QtWidgets.QWidget(self.mainWidget)
             w = Ui_frmComTool()
             w.setupUi(widget)
             self.comTool = FrmComTool(w, self)
@@ -132,6 +134,7 @@ class MainWindow(QObject, Ui_MainWindow):
             self.ui.tabWidget.setCurrentIndex(i)
 
             self.ui.tabWidget.tabBar().setTabButton(self.ui.tabWidget.addTab(QtWidgets.QWidget(), "添加"), QTabBar.ButtonPosition.RightSide, None)
+            self.windowStyleSheetRefresh()
 
     def module_lowPowerBle_init(self):
         self.ble = BleMainWin(self.ui.page2)

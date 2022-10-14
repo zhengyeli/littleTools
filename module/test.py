@@ -132,7 +132,7 @@ class test_wave:
         for strings in string_lists:
             print(strings)
             string_list = re.split(",", strings)
-            if string_list[0] == '$JYBSS':
+            if 'BSS' in string_list[0]:
                 if len(string_list) > 2:
                     if int(string_list[1]) == 1:
                         self.label.setText("有人")
@@ -141,7 +141,7 @@ class test_wave:
                         self.label.setText("无人")
                         self.label.setStyleSheet("QLabel{background-color:rgb(255,0,0);}")
 
-            elif string_list[0] == '$JYRPO':
+            elif 'RPO' in string_list[0]:
                 if len(string_list) > 4:
                     if float(string_list[3]) > 0.00001:
                         self.label1.setText(string_list[3])
