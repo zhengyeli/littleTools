@@ -62,6 +62,7 @@ class govee_mqtt_log:
         log = steam.readAll()
         file.close()
         self.in_edit.insertPlainText(log)
+        self.in_dock.setWindowTitle(self.C.utils.in_file_dir)
 
         file = QFile(self.C.utils.out_file_dir)
         file.open(QFile.OpenModeFlag.ReadOnly)
@@ -69,6 +70,7 @@ class govee_mqtt_log:
         log = steam.readAll()
         file.close()
         self.out_edit.insertPlainText(log)
+        self.out_dock.setWindowTitle(self.C.utils.out_file_dir)
 
 if __name__ == '__main__':
     Log_Prase_Handle()
