@@ -7,7 +7,7 @@ from distutils.util import strtobool
 from PyQt6 import QtSerialPort, QtWidgets, QtGui
 from PyQt6.QtCore import QSettings, QTimer, QIODevice, pyqtSignal, Qt, QByteArray, QDateTime, QFile, QTextStream, \
     QEvent, QObject
-from PyQt6.QtGui import QTextCursor, QColor, QFont, QKeyEvent
+from PyQt6.QtGui import QTextCursor, QColor, QFont, QKeyEvent, QTextCharFormat
 from PyQt6.QtNetwork import QTcpSocket, QUdpSocket, QHostAddress, QNetworkInterface, QAbstractSocket, QTcpServer, \
     QNetworkDatagram
 from PyQt6.QtSerialPort import QSerialPort, QSerialPortInfo
@@ -101,6 +101,7 @@ class FrmComTool(QObject, Ui_frmComTool):
         # self.ui.widgetMain.layout().addWidget(self.w)
 
         self.ui.txtMain.setReadOnly(True)
+        self.ui.txtMain.insertPlainText("#")
         try:
             self.ui.txtMain.signal_keyPressed.connect(self.keyPressEvent)
         except:
@@ -592,12 +593,6 @@ class FrmComTool(QObject, Ui_frmComTool):
         if self.ui.cboxLogTime.isChecked():
             strData = "时间[{0}] [{1}] {2}".format(datetime.datetime.now(), strType, strData)
 
-        # 文本替换
-        # strData = strData.replace("ERR", "<font color=red>ERR</font>")
-        # strData = strData.replace("WARN", "<font color=yellow>WARN</font>")
-        # strData = strData.replace("INF", "<font color=yellow>INF</font>")
-        # strData = strData.replace("success", "<font color=green>success</font>")
-
         # 进度条在尾部，实时显示打印
         if self.ui.txtMain.verticalScrollBar().value() == self.ui.txtMain.verticalScrollBar().maximum():
             self.isinputText = True
@@ -612,17 +607,40 @@ class FrmComTool(QObject, Ui_frmComTool):
         cursor.deletePreviousChar()
         self.ui.txtMain.setTextCursor(cursor)
 
+        # 文本替换
+        # strData = strData.replace("ERR", "<font color=red>ERR</font>")
+        # strData = strData.replace("WARN", "<font color=yellow>WARN</font>")
+        # strData = strData.replace("INF", "<font color=yellow>INF</font>")
+        # strData = strData.replace("success", "<font color=green>success</font>")
+        if "ERR" in strData or "WARN" in strData:
+            if "ERR" in strData:
+                stringList = re.split('ERR', strData)
+                self.insertPlainColorText(stringList[0])
+                self.insertPlainColorText('ERR', QColor(255, 0, 0))
+                self.insertPlainColorText(stringList[1])
+            elif "WARN" in strData:
+                stringList = re.split('WARN', strData)
+                self.insertPlainColorText(stringList[0])
+                self.insertPlainColorText('WARN', QColor(255, 255, 0))
+                self.insertPlainColorText(stringList[1])
+
+            if self.isinputText:
+                self.ui.txtMain.update()
+                self.ui.txtMain.verticalScrollBar().setSliderPosition(self.ui.txtMain.verticalScrollBar().maximum())
+            else:
+                self.ui.txtMain.verticalScrollBar().setSliderPosition(curBarPosition)
+
+            return
+
         if self.ui.cboxWrap.isChecked():
             try:
                 self.ui.txtMain.append(strData)
-                self.ui.txtMain.insertPlainText("#")
             except:
                 self.ui.txtMain.appendPlainText(strData)
-                self.ui.txtMain.insertPlainText("#")
         else:
             # insertHtml 支持html格式颜色文字
             self.ui.txtMain.insertPlainText(strData)
-            self.ui.txtMain.insertPlainText("#")
+        self.ui.txtMain.insertPlainText("#")
 
         if self.isinputText:
             self.ui.txtMain.update()
@@ -631,6 +649,19 @@ class FrmComTool(QObject, Ui_frmComTool):
             self.ui.txtMain.verticalScrollBar().setSliderPosition(curBarPosition)
 
         self.currentCount += 1
+
+    def insertPlainColorText(self, string="", color=QColor(0, 0, 0)):
+        ''' 以color的颜色插入string字符串 '''
+        curentFmt = self.ui.txtMain.currentCharFormat()
+
+        fmt = QTextCharFormat()
+        fmt.setForeground(color)
+        cursor = self.ui.txtMain.textCursor()
+        cursor.mergeCharFormat(fmt)
+        self.ui.txtMain.mergeCurrentCharFormat(fmt)
+
+        self.ui.txtMain.insertPlainText(string)
+        self.ui.txtMain.mergeCurrentCharFormat(curentFmt)
 
     def hotkey_button_init(self):
         # init hot key
