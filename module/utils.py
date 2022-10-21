@@ -4,8 +4,8 @@ class utils:
         return bytes.hex(bytesData, ' ')
 
     @staticmethod
-    def hex2bytes(hex):
-        return bytes.fromhex(hex)
+    def stringHex2bytes(stringHex):
+        return bytes.fromhex(stringHex)
 
     @staticmethod
     def hex2int(hex):

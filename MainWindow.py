@@ -1,5 +1,5 @@
 from PyQt6.QtCore import QObject, QIODevice, QFile, QTextStream
-from PyQt6.QtWidgets import QTabBar
+from PyQt6.QtWidgets import QTabBar, QVBoxLayout
 
 from Ui_MainWindow import Ui_MainWindow
 from PyQt6 import QtCore, QtGui, QtWidgets
@@ -7,6 +7,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from module.LowPowerBlueTooth.bleMainWin import BleMainWin
 from module.SerialPort.FrmComTool import FrmComTool
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
+from module.iotLogAnalyzer.MTextEdit import MTextEdit
 from module.iotLogAnalyzer.main import govee_mqtt_log
 from module.photograph.graphDraw import BasicArrayPlot, dynamicArrayPlot
 
@@ -119,6 +120,12 @@ class MainWindow(QObject, Ui_MainWindow):
         w = Ui_frmComTool()
         w.setupUi(widget)
         self.comTool = FrmComTool(w, self)
+        # self.w = QWidget()
+        # layout = QVBoxLayout()
+        # self.txtMain = MTextEdit(None)
+        # layout.addWidget(self.txtMain)
+        # widget.setLayout(layout)
+
         self.ui.tabWidget.addTab(widget, "comx")
 
         self.ui.tabWidget.tabBar().setTabButton(self.ui.tabWidget.addTab(QtWidgets.QWidget(), "添加"), QTabBar.ButtonPosition.RightSide, None)

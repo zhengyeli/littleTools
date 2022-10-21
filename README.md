@@ -34,6 +34,7 @@ working directory:$FileDir$
 program: E:\Python3.9\Scripts\pyinstaller.exe
 arguments: -D -w $FileName$
 working directory:$FileDir$
+usage:pyinstaller.exe -D -w main.py 
 
 [PYRCC]
 program: E:\Python3.9\Scripts\pyside6-rcc.exe

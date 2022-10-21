@@ -3,8 +3,8 @@ import datetime
 import base64
 import json
 
-LOG_FILE_NAME = "in_log.txt"
-DECODE_FILE_NAME = "out_log.txt"
+LOG_FILE_NAME = "./module/iotLogAnalyzer/in_log.txt"
+DECODE_FILE_NAME = "./module/iotLogAnalyzer/out_log.txt"
 
 # 来源解释
 cmd_from = {

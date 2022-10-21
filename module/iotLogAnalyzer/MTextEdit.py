@@ -5,11 +5,13 @@ from PyQt6.QtWidgets import QTextEdit, QMessageBox, QWidget, QGridLayout, QLabel
 
 from module.iotLogAnalyzer.findStringAsk import Ui_search
 
+
 class MTextEdit(QPlainTextEdit):
     signal_fileDragInput = pyqtSignal(str)
+    signal_keyPressed = pyqtSignal(QtGui.QKeyEvent)
 
     def __init__(self, parent):
-        super().__init__(parent)
+        super(MTextEdit, self).__init__()
         self.textEdit_findStr = None
         self.setReadOnly(False)
 
@@ -44,8 +46,9 @@ class MTextEdit(QPlainTextEdit):
             return super().dragEnterEvent(e)
 
     def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
+        self.signal_keyPressed.emit(e)
         if e.type() == QtGui.QKeyEvent.Type.KeyPress:
-            print(e.key())
+            # print(e.key())
             if e.key() == 16777249:  # ctrl
                 self.findModeStep = 1
                 return
@@ -63,16 +66,15 @@ class MTextEdit(QPlainTextEdit):
                 self.findStringInputWindowShow(False)
                 return
 
-
         super().keyPressEvent(e)
-
 
     def findNextString(self):
         string = self.findStringUi.lineEdit_findStr.text()
-        if self.find(string, self.findForward): # 查找后一个
+        if self.find(string, self.findForward):  # 查找后一个
             # 查找到后高亮显示
             palette = self.palette()
-            palette.setColor(QPalette.ColorRole.Highlight, palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Highlight))
+            palette.setColor(QPalette.ColorRole.Highlight,
+                             palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Highlight))
             self.setPalette(palette)
         else:
             QMessageBox.information(QWidget(), "注意", "没有找到内容")
@@ -84,7 +86,8 @@ class MTextEdit(QPlainTextEdit):
         if self.find(string, QTextDocument.FindFlag.FindWholeWords):
             # 查找到后高亮显示
             palette = self.palette()
-            palette.setColor(QPalette.ColorRole.Highlight, palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Highlight))
+            palette.setColor(QPalette.ColorRole.Highlight,
+                             palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Highlight))
             self.setPalette(palette)
         else:
             QMessageBox.information(QWidget(), "注意", "没有找到内容")
