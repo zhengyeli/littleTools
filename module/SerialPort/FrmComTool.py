@@ -491,7 +491,9 @@ class FrmComTool(QObject, Ui_frmComTool):
         self.AppConfig.writeConfig()
 
     def comTool_AvailableCom_Scan(self):
+        self.ui.cboxPortName.clear()
         comList = []
+
         info = QSerialPortInfo.availablePorts()
         for i in info:
             comList.append(i.portName())
