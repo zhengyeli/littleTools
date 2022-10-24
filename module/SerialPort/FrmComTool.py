@@ -458,6 +458,16 @@ class FrmComTool(QObject, Ui_frmComTool):
         self.AppConfig.AutoSend = self.ui.ckAutoSend.isChecked()
         self.AppConfig.AutoSave = self.ui.ckAutoSave.isChecked()
 
+        if self.AppConfig.AutoSend:
+            self.timerSend.start()
+        else:
+            self.timerSend.stop()
+
+        if self.AppConfig.AutoSave:
+            self.timerSave.start()
+        else:
+            self.timerSave.stop()
+
         sendInterval = self.ui.cboxSendInterval.currentText()
         if sendInterval != self.AppConfig.SendInterval:
             self.AppConfig.SendInterval = sendInterval
