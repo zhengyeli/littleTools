@@ -1,10 +1,13 @@
+import os
 import re
 import datetime
 import base64
 import json
 
-LOG_FILE_NAME = "./module/iotLogAnalyzer/in_log.txt"
-DECODE_FILE_NAME = "./module/iotLogAnalyzer/out_log.txt"
+from PyQt6.QtCore import QFile, QIODevice, QTextStream
+LOG_FILE_PATH = "module/iotLogAnalyzer"
+LOG_FILE_NAME = "in_log.txt"
+DECODE_FILE_NAME = "out_log.txt"
 
 # 来源解释
 cmd_from = {
@@ -61,12 +64,14 @@ class Mqtt_Utils:
     def __init__(self):
         self.out_file_dir = None
         self.in_file_dir = None
+        if os.path.exists(LOG_FILE_PATH) is False:
+            os.makedirs(LOG_FILE_PATH)
         try:
-            self.in_file = open(LOG_FILE_NAME, mode='r', encoding='utf-8')
-            self.out_file = open(DECODE_FILE_NAME, mode='w', encoding='utf-8')
+            self.in_file = open(LOG_FILE_PATH+'/'+LOG_FILE_NAME, mode='r', encoding='utf-8')
+            self.out_file = open(LOG_FILE_PATH+'/'+DECODE_FILE_NAME, mode='w', encoding='utf-8')
         except FileNotFoundError:
-            print("create input file " + LOG_FILE_NAME)
-            self.in_file = open(LOG_FILE_NAME, mode='w+', encoding='utf-8')
+            print("create input file " + LOG_FILE_PATH+'/'+LOG_FILE_NAME)
+            self.in_file = open(LOG_FILE_PATH+'/'+LOG_FILE_NAME, mode='w+', encoding='utf-8')
 
     def in_file_input(self, file_dir):
         self.__del__()

@@ -1,4 +1,5 @@
 import datetime
+import os
 import re
 import typing
 from datetime import time
@@ -209,7 +210,9 @@ class FrmComTool(QObject, Ui_frmComTool):
             return super().eventFilter(obj, event)  # 返回默认的事件过滤器
 
     def comTool_form_and_signal_init(self):
-
+        LOG_FILE_PATH = "module/SerialPort/Log"
+        if os.path.exists(LOG_FILE_PATH) is False:
+            os.makedirs(LOG_FILE_PATH)
         self.ComOpen_changeEnable(True)
 
         # 连接按键
