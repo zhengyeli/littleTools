@@ -665,18 +665,22 @@ class FrmComTool(QObject, Ui_frmComTool):
 
         self.currentCount += 1
 
-    def insertPlainColorText(self, string="", color=QColor(0, 0, 0)):
+    def insertPlainColorText(self, string="", color=None):
         ''' 以color的颜色插入string字符串 '''
         curentFmt = self.ui.txtMain.currentCharFormat()
 
-        fmt = QTextCharFormat()
-        fmt.setForeground(color)
-        cursor = self.ui.txtMain.textCursor()
-        cursor.mergeCharFormat(fmt)
-        self.ui.txtMain.mergeCurrentCharFormat(fmt)
+        if color is None:
+            pass
+        else:
+            fmt = QTextCharFormat()
+            fmt.setForeground(color)
+            cursor = self.ui.txtMain.textCursor()
+            cursor.mergeCharFormat(fmt)
+            self.ui.txtMain.setCurrentCharFormat(fmt)
 
         self.ui.txtMain.insertPlainText(string)
-        self.ui.txtMain.mergeCurrentCharFormat(curentFmt)
+
+        self.ui.txtMain.setCurrentCharFormat(curentFmt)
 
     def hotkey_button_init(self):
         # init hot key
