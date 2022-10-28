@@ -58,13 +58,14 @@ class blockItemList:
         widget.setLayout(self.gridlayout)
         self.gridlayout.addLayout(self.headLayout, 0, 0)
 
-        settings = QSettings("Software Inc.", "Icon Editor")
-        settings.beginGroup("mainWindow")
+        settings = QSettings("setting.ini", QSettings.Format.IniFormat)
+        settings.beginGroup("QuickConfig")
         self.last_dir = settings.value("quickSnd_dir")
         settings.endGroup()
 
-        if len(self.last_dir) > 0:
-            self.init_load(True)
+        if self.last_dir is not None:
+            if len(self.last_dir) != 0:
+                self.init_load(True)
 
     def addItem(self, ishex=False, string=""):
         blk = blockItem(ishex, string)
@@ -88,8 +89,8 @@ class blockItemList:
             init_dir = self.last_dir
         else:
             widget = QWidget()
-            init_dir = QFileDialog.getOpenFileName(widget, "load file", self.last_dir)
-            init_dir = init_dir[0]
+            dirInfo = QFileDialog.getOpenFileName(widget, "load file", self.last_dir)
+            init_dir = dirInfo[0]
 
         if len(init_dir) == 0:
             return
@@ -97,8 +98,8 @@ class blockItemList:
         file = QFile(init_dir)
 
         if file.open(QFile.OpenModeFlag.ReadOnly):
-            settings = QSettings("Software Inc.", "Icon Editor")
-            settings.beginGroup("mainWindow")
+            settings = QSettings("setting.ini", QSettings.Format.IniFormat)
+            settings.beginGroup("QuickConfig")
             settings.setValue("quickSnd_dir", init_dir)
             settings.endGroup()
 

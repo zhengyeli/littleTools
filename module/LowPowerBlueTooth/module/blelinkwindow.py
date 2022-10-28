@@ -30,8 +30,8 @@ class blelinkwindow():
         self.init()
 
     def init(self):
-        settings = QSettings("Software Inc.", "Icon Editor")
-        settings.beginGroup("blelinkwindow")
+        settings = QSettings("setting.ini", QSettings.Format.IniFormat)
+        settings.beginGroup("BleConfig")
         sku = settings.value("sku")
         settings.endGroup()
         # ----------------------------------------- 在界面添加窗口
@@ -43,10 +43,11 @@ class blelinkwindow():
         # dockWidgetContents.setGeometry(QRect(10, 10, 100, 400)) # 从屏幕上（10，10）位置开始（即为最左上角的点），显示一个30 * 35的界面（宽30，高35）
 
         self.text_sku = QLineEdit(dockWidgetContents)
-        if len(sku) == 0:
-            self.text_sku.setText("7160")
-        else:
-            self.text_sku.setText(sku)
+        if sku is not None:
+            if len(sku) == 0:
+                self.text_sku.setText("7160")
+            else:
+                self.text_sku.setText(sku)
 
         self.text_ble_send = QLineEdit(dockWidgetContents)
         self.text_ble_send.setText("aa01")
@@ -154,8 +155,9 @@ class blelinkwindow():
         elif sku == "stop":
             self.button_scan_sku.setText("scan")
             self.superClass.deviceFinder.stopSearch()
-        settings = QSettings("Software Inc.", "Icon Editor")
-        settings.beginGroup("blelinkwindow")
+
+        settings = QSettings("setting.ini", QSettings.Format.IniFormat)
+        settings.beginGroup("BleConfig")
         settings.setValue("sku", self.text_sku.text())
         settings.endGroup()
 

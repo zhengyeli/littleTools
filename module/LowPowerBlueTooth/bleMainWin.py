@@ -13,7 +13,7 @@ from PyQt6 import QtWidgets
 
 class BleMainWin(QMainWindow):
     def __del__(self):
-        self.saveSettings()
+        pass
 
     def __init__(self, widget):
         super().__init__()
@@ -93,7 +93,6 @@ class BleMainWin(QMainWindow):
                              QDockWidget.DockWidgetFeature.DockWidgetMovable |
                              QDockWidget.DockWidgetFeature.DockWidgetFloatable)
 
-        self.readSettings()
         self.closeAllWindow()
         self.DockwidgetInfo_btn_click()
 
@@ -114,26 +113,26 @@ class BleMainWin(QMainWindow):
         for toolBtn in toolBtnList:
             toolBtn.setChecked(False)
 
-    def saveSettings(self):
-        settings = QSettings("Software Inc.", "Icon Editor")
-        settings.beginGroup("mainWindow")
-        settings.setValue("geometry", self.superWidget.saveGeometry())
-        settings.setValue("size", self.superWidget.size())
-        settings.setValue("state", self.superWidget.saveState())
-        settings.endGroup()
-
-    def readSettings(self):
-        settings = QSettings("Software Inc.", "Icon Editor")
-        settings.beginGroup("mainWindow")
-        self.superWidget.restoreGeometry(settings.value("geometry"))
-        self.superWidget.restoreState(settings.value("state"))
-        self.superWidget.resize(settings.value("size"))
-        settings.endGroup()
-
-        toolbtnList = self.toolbar.findChildren(QToolButton)
-        for toolbtn in toolbtnList:
-            if toolbtn.isChecked():
-                toolbtn.click()
+    # def saveSettings(self):
+    #     settings = QSettings("Software Inc.", "Icon Editor")
+    #     settings.beginGroup("mainWindow")
+    #     settings.setValue("geometry", self.superWidget.saveGeometry())
+    #     settings.setValue("size", self.superWidget.size())
+    #     settings.setValue("state", self.superWidget.saveState())
+    #     settings.endGroup()
+    #
+    # def readSettings(self):
+    #     settings = QSettings("Software Inc.", "Icon Editor")
+    #     settings.beginGroup("mainWindow")
+    #     self.superWidget.restoreGeometry(settings.value("geometry"))
+    #     self.superWidget.restoreState(settings.value("state"))
+    #     self.superWidget.resize(settings.value("size"))
+    #     settings.endGroup()
+    #
+    #     toolbtnList = self.toolbar.findChildren(QToolButton)
+    #     for toolbtn in toolbtnList:
+    #         if toolbtn.isChecked():
+    #             toolbtn.click()
 
     def creatNewDockWindow(self, w, a):
         self.superWidget.addDockWidget(a, w)

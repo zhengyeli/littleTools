@@ -69,8 +69,8 @@ class bleUartWindow:
         self.motherClass.toolbar.addWidget(self.toolBtn) # 向工具栏添加QToolButton按钮
         self.dockBleUart.setVisible(False)
 
-        settings = QSettings("Software Inc.", "Icon Editor")
-        settings.beginGroup("mainWindow")
+        settings = QSettings("setting.ini", QSettings.Format.IniFormat)
+        settings.beginGroup("BleUartConfig")
         self.last_dir = settings.value("config_dir")
         settings.endGroup()
 
@@ -178,16 +178,17 @@ class bleUartWindow:
             dir = self.last_dir
         else:
             widget = QWidget()
-            dir = QFileDialog.getOpenFileName(widget, "load file", "")
+            dirInfo = QFileDialog.getOpenFileName(widget, "load file", "")
+            dir = dirInfo[0]
 
-        if len(dir[0]) == 0:
+        if len(dir) == 0:
             return
 
-        file = QFile(dir[0])
+        file = QFile(dir)
 
         if file.open(QFile.OpenModeFlag.ReadOnly):
-            settings = QSettings("Software Inc.", "Icon Editor")
-            settings.beginGroup("mainWindow")
+            settings = QSettings("setting.ini", QSettings.Format.IniFormat)
+            settings.beginGroup("BleUartConfig")
             settings.setValue("config_dir", dir)
             settings.endGroup()
 
