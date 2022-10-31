@@ -44,3 +44,8 @@ class utils:
         for i in range(0, len(hex)):
             send_hex[i] = hex[i]
         return send_hex
+
+    @staticmethod
+    def intlist2hexString(intList):
+        string = bytes(intList).hex()
+        return string
