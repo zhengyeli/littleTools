@@ -221,7 +221,7 @@ background-color:transparent;
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page1">
        <layout class="QHBoxLayout" name="horizontalLayout">
@@ -314,6 +314,9 @@ background-color:transparent;
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menubar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -323,6 +326,11 @@ background-color:transparent;
     </rect>
    </property>
   </widget>
+  <action name="actionDADA">
+   <property name="text">
+    <string>DADA</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="image.qrc"/>

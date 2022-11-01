@@ -1,5 +1,6 @@
-from PyQt6.QtCore import QObject, QIODevice, QFile, QTextStream
-from PyQt6.QtWidgets import QTabBar, QVBoxLayout
+from PyQt6.QtCore import QObject, QIODevice, QFile, QTextStream, QSettings
+from PyQt6.QtGui import QAction, QIcon, QPixmap
+from PyQt6.QtWidgets import QTabBar, QVBoxLayout, QMenu, QWidget, QFileDialog
 
 from Ui_MainWindow import Ui_MainWindow
 from PyQt6 import QtCore, QtGui, QtWidgets
@@ -12,7 +13,7 @@ from module.iotLogAnalyzer.main import govee_mqtt_log
 from module.photograph.graphDraw import BasicArrayPlot, dynamicArrayPlot
 
 import qss
-
+import src.src
 
 class CommonHelper:
     def __init__(self):
@@ -44,18 +45,59 @@ class MainWindow(QObject, Ui_MainWindow):
 
         self.mainWidget = None
         self.ui = ui
+        self.menuSetting = None
+        self.actionLoadQss = None
 
         self.styleFile = ""
         self.button_init()
         self.ui.stackedWidget.setCurrentIndex(0)
         # self.ui = Ui_MainWindow(self.ui)
         self.tabWidget_trigger_init()
+        self.main_init()
         self.module_init()
+
+    def main_init(self):
+        if self.ui.menubar is not None:
+            self.menuSetting = QMenu("设置")
+            self.ui.menubar.addMenu(self.menuSetting)
+
+            self.actionLoadQss = QAction(QIcon(QPixmap(":/src/1.png")), "加载样式表")
+            self.menuSetting.addAction(self.actionLoadQss)
+            self.actionLoadQss.triggered.connect(self.menuAction_loadQss)
+        else:
+            print("menubar is none")
+
+    def menuAction_loadQss(self):
+            widget = QWidget()
+            dirInfo = QFileDialog.getOpenFileName(widget, "load file", "")
+            dir = dirInfo[0]
+
+            if len(dir) == 0:
+                return
+
+            file = QFile(dir)
+
+            if file.open(QFile.OpenModeFlag.ReadOnly):
+                settings = QSettings("setting.ini", QSettings.Format.IniFormat)
+                settings.beginGroup("QssPathConfig")
+                settings.setValue("qssPath", dir)
+                settings.endGroup()
+
+                self.styleFile = dir  # 根据文件路径加载
+                self.windowStyleSheetRefresh()
 
     def widgetRegister(self, w):
         self.mainWidget = w
-        self.styleFile = "./qss/daniu.qss"  # 根据文件路径加载
-        self.windowStyleSheetRefresh()
+        self.mainWidget.setWindowTitle("这是一个标题")
+
+        settings = QSettings("setting.ini", QSettings.Format.IniFormat)
+        settings.beginGroup("QssPathConfig")
+        path = settings.value("qssPath")
+        settings.endGroup()
+
+        if path is not None:
+            self.styleFile = path  # 根据文件路径加载
+            self.windowStyleSheetRefresh()
 
     def windowStyleSheetRefresh(self):
         qssStyle = CommonHelper.readQssResource(self.styleFile)
