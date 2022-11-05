@@ -10,6 +10,7 @@ from module.SerialPort.FrmComTool import FrmComTool
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
 from module.iotLogAnalyzer.MTextEdit import MTextEdit
 from module.iotLogAnalyzer.main import govee_mqtt_log
+from module.ota.main import otaWindow
 from module.photograph.graphDraw import BasicArrayPlot, dynamicArrayPlot
 
 import qss
@@ -38,6 +39,7 @@ class MainWindow(QObject, Ui_MainWindow):
 
     def __init__(self, ui):
         super().__init__()
+
         self.main = None
         self.ble = None
         self.comTool = None
@@ -47,6 +49,7 @@ class MainWindow(QObject, Ui_MainWindow):
         self.ui = ui
         self.menuSetting = None
         self.actionLoadQss = None
+        self.actionOta = None
 
         self.styleFile = ""
         self.button_init()
@@ -149,6 +152,12 @@ class MainWindow(QObject, Ui_MainWindow):
         self.module_serialports_init()
         self.module_lowPowerBle_init()
         self.module_logAnalyse_init()
+        self.module_ota_init()
+
+    def module_ota_init(self):
+        self.actionOta = QAction(QIcon(QPixmap(":/src/2.png")), "Govee ota")
+        self.menuSetting.addAction(self.actionOta)
+        self.actionOta.triggered.connect(lambda: otaWindow(None))
 
     def module_logAnalyse_init(self):
         govee_mqtt_log(self)

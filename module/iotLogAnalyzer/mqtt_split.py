@@ -72,6 +72,7 @@ class Mqtt_Utils:
         except FileNotFoundError:
             print("create input file " + LOG_FILE_PATH+'/'+LOG_FILE_NAME)
             self.in_file = open(LOG_FILE_PATH+'/'+LOG_FILE_NAME, mode='w+', encoding='utf-8')
+        self.in_file
 
     def in_file_input(self, file_dir):
         self.__del__()

@@ -1,3 +1,8 @@
+import hashlib
+import os
+import shutil
+
+
 class utils:
     @staticmethod
     def bytes2hex(bytesData):
@@ -49,3 +54,38 @@ class utils:
     def intlist2hexString(intList):
         string = bytes(intList).hex()
         return string
+
+    @staticmethod
+    def fileMd5(filePath):
+        with open(filePath, 'rb') as fd:
+            md5obj = hashlib.md5()
+            md5obj.update(fd.read())
+            return md5obj.hexdigest()
+
+    @staticmethod
+    def fileSize(filePath):
+        return os.path.getsize(filePath)
+
+    @staticmethod
+    def mycopyfile(srcfile, dstpath):  # 复制函数
+        if not os.path.isfile(srcfile):
+            print("%s not exist!" % (srcfile))
+        else:
+            fpath, fname = os.path.split(srcfile)  # 分离文件名和路径
+            if not os.path.exists(dstpath):
+                os.makedirs(dstpath)  # 创建路径
+            shutil.copy(srcfile, dstpath + fname)  # 复制文件
+            print("copy %s -> %s" % (srcfile, dstpath + fname))
+
+    @staticmethod
+    def mycopyfileChangeName(srcfileName, dstpathName):  # 复制并重命名函数
+        if not os.path.isfile(srcfileName):
+            print("%s not exist!" % (srcfileName))
+        else:
+            fpath, fname = os.path.split(srcfileName)  # 分离文件名和路径
+            dfpath, dfname = os.path.split(dstpathName)  # 分离文件名和路径
+            if not os.path.exists(dfpath):
+                os.makedirs(dfpath)  # 创建路径
+            shutil.copy(srcfileName, dfname)  # 复制文件
+            print("copy %s -> %s" % (srcfileName, dfname))
+            # shutil.move(srcfileName, dstpathName)

@@ -522,10 +522,7 @@ class FrmComTool(QObject, Ui_frmComTool):
             return
 
         if test_wave_enable:
-            if self.AppConfig.HexReceive:
-                pass
-            else:
-                self.test.serial_data_handle(Str_data)
+            self.test.serial_data_handle(Str_data)
 
         if "\b \b" in Str_data:  # backspace
             # 获取当前文本光标

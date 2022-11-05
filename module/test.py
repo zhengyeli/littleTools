@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import QWidget, QLabel, QGridLayout
 
 from module.Mqtt.pahoMqttClient import govee_mqtt_client
 from module.photograph.graphDraw import BasicArrayPlot, dynamicArrayPlot
+from module.utils import utils
 
 DistanceFilterMaxIndex = 8
 calculacy = 0.5
@@ -126,6 +127,16 @@ class test_wave:
 
         self.Myplot.update_plot(float(dis))
 
+    def split_string(self, f_line, f_head, f_tail):
+        s_head = f_line.find(f_head)
+        s_tail = f_line.find(f_tail)
+        if (s_head == -1) or (s_tail == -1):
+            return -1
+        else:
+            s_head = re.split(f_head, f_line)
+            s_tail = re.split(f_tail, s_head[1])
+            return s_tail[0]
+
     # 隔空
     def gekong_serial_data_handle(self, string):
         string_lists = re.split("\r\n", string)
@@ -148,8 +159,34 @@ class test_wave:
 
                         self.Myplot.update_plot(float(string_list[3]))
 
+    # 典微
+    def dianwei_serial_data_handle(self, string):
+        string_lists = self.split_string(string, "f4 f3 f2 f1 0b 00 02 aa", "55 00 f8 f7 f6 f5")
+        hex_lists = utils.string2intlist(string_lists)
+        if len(hex_lists) != 7:
+            return
+
+        if hex_lists[0] > 0:
+            self.label.setText("有人")
+            self.label.setStyleSheet("QLabel{background-color:rgb(0,255,0);}")
+            move_dis = hex_lists[2] * 100 + hex_lists[1]
+            print("动作距离：" + str(move_dis))
+
+            stop_dis = hex_lists[5] * 256 + hex_lists[4]
+            print("静止距离：" + str(stop_dis))
+            self.label1.setText(str(move_dis) + '\n' + str(stop_dis))
+        else:
+            self.label.setText("无人")
+            self.label.setStyleSheet("QLabel{background-color:rgb(255,0,0);}")
+
+        # self.Myplot.update_plot(float(hex_lists[3]))
+
     def serial_data_handle(self, string):
-        self.gekong_serial_data_handle(string)
+        data_from = 2
+        if data_from == 1:  # 隔空
+            self.gekong_serial_data_handle(string)
+        elif data_from == 2:  # 典微
+            self.dianwei_serial_data_handle(string)
 
     def event_triger(self, event):
 
