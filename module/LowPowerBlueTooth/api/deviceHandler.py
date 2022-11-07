@@ -1,6 +1,5 @@
-from PyQt6.QtBluetooth import QBluetoothUuid, QLowEnergyService, QLowEnergyController, QLowEnergyDescriptor, \
-    QBluetoothDeviceInfo, QLowEnergyCharacteristic
-from PyQt6.QtCore import QTimer, pyqtSignal, QByteArray
+from PyQt6.QtBluetooth import QBluetoothUuid, QLowEnergyService, QLowEnergyController
+from PyQt6.QtCore import QTimer, pyqtSignal
 
 from module.LowPowerBlueTooth.api.BluetoothBaseClass import BluetoothBaseClass
 
@@ -100,7 +99,8 @@ class DeviceHandler(BluetoothBaseClass):
     def characteristicWrite(self, byte_value):
         if self.m_service is not None:
             if self.setChar is not None:
-                self.m_service.writeCharacteristic(self.setChar, byte_value, QLowEnergyService.WriteMode.WriteWithoutResponse)
+                self.m_service.writeCharacteristic(self.setChar, byte_value,
+                                                   QLowEnergyService.WriteMode.WriteWithoutResponse)
             else:
                 self.setError("write characteristic not valid")
         else:
@@ -155,8 +155,3 @@ class DeviceHandler(BluetoothBaseClass):
     def continueConnectService(self):
         if self.m_notificationDesc:
             self.m_service.writeDescriptor(self.m_notificationDesc, bytes.fromhex("0100"))
-
-
-
-
-

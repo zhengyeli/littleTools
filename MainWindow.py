@@ -1,20 +1,16 @@
+from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import QObject, QIODevice, QFile, QTextStream, QSettings
 from PyQt6.QtGui import QAction, QIcon, QPixmap
-from PyQt6.QtWidgets import QTabBar, QVBoxLayout, QMenu, QWidget, QFileDialog
+from PyQt6.QtWidgets import QTabBar, QMenu, QWidget, QFileDialog
 
 from Ui_MainWindow import Ui_MainWindow
-from PyQt6 import QtCore, QtGui, QtWidgets
-
 from module.LowPowerBlueTooth.bleMainWin import BleMainWin
 from module.SerialPort.FrmComTool import FrmComTool
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
-from module.iotLogAnalyzer.MTextEdit import MTextEdit
 from module.iotLogAnalyzer.main import govee_mqtt_log
 from module.ota.main import otaWindow
 from module.photograph.graphDraw import BasicArrayPlot, dynamicArrayPlot
 
-import qss
-import src.src
 
 class CommonHelper:
     def __init__(self):
@@ -71,23 +67,23 @@ class MainWindow(QObject, Ui_MainWindow):
             print("menubar is none")
 
     def menuAction_loadQss(self):
-            widget = QWidget()
-            dirInfo = QFileDialog.getOpenFileName(widget, "load file", "")
-            dir = dirInfo[0]
+        widget = QWidget()
+        dirInfo = QFileDialog.getOpenFileName(widget, "load file", "")
+        dir = dirInfo[0]
 
-            if len(dir) == 0:
-                return
+        if len(dir) == 0:
+            return
 
-            file = QFile(dir)
+        file = QFile(dir)
 
-            if file.open(QFile.OpenModeFlag.ReadOnly):
-                settings = QSettings("setting.ini", QSettings.Format.IniFormat)
-                settings.beginGroup("QssPathConfig")
-                settings.setValue("qssPath", dir)
-                settings.endGroup()
+        if file.open(QFile.OpenModeFlag.ReadOnly):
+            settings = QSettings("setting.ini", QSettings.Format.IniFormat)
+            settings.beginGroup("QssPathConfig")
+            settings.setValue("qssPath", dir)
+            settings.endGroup()
 
-                self.styleFile = dir  # 根据文件路径加载
-                self.windowStyleSheetRefresh()
+            self.styleFile = dir  # 根据文件路径加载
+            self.windowStyleSheetRefresh()
 
     def widgetRegister(self, w):
         self.mainWidget = w
@@ -109,10 +105,6 @@ class MainWindow(QObject, Ui_MainWindow):
     def eventFilter(self, obj, event):
         # print(123)
         return super().eventFilter(obj, event)
-
-    def keyPressEvent(self, keyevent):
-        print("keyevent")
-        return False
 
     def button_init(self):
         btn_list = self.ui.widgetTop.findChildren(QtWidgets.QAbstractButton)
@@ -171,15 +163,10 @@ class MainWindow(QObject, Ui_MainWindow):
         w = Ui_frmComTool()
         w.setupUi(widget)
         self.comTool = FrmComTool(w, self)
-        # self.w = QWidget()
-        # layout = QVBoxLayout()
-        # self.txtMain = MTextEdit(None)
-        # layout.addWidget(self.txtMain)
-        # widget.setLayout(layout)
 
         self.ui.tabWidget.addTab(widget, "comx")
-
-        self.ui.tabWidget.tabBar().setTabButton(self.ui.tabWidget.addTab(QtWidgets.QWidget(), "添加"), QTabBar.ButtonPosition.RightSide, None)
+        self.ui.tabWidget.tabBar().setTabButton(self.ui.tabWidget.addTab(QtWidgets.QWidget(), "添加"),
+                                                QTabBar.ButtonPosition.RightSide, None)
 
     def module_serialports_addPort(self, i):
         if self.ui.tabWidget.tabText(i) == "添加":
@@ -191,7 +178,8 @@ class MainWindow(QObject, Ui_MainWindow):
             self.ui.tabWidget.addTab(widget, "comx")
             self.ui.tabWidget.setCurrentIndex(i)
 
-            self.ui.tabWidget.tabBar().setTabButton(self.ui.tabWidget.addTab(QtWidgets.QWidget(), "添加"), QTabBar.ButtonPosition.RightSide, None)
+            self.ui.tabWidget.tabBar().setTabButton(self.ui.tabWidget.addTab(QtWidgets.QWidget(), "添加"),
+                                                    QTabBar.ButtonPosition.RightSide, None)
             self.windowStyleSheetRefresh()
 
     def module_lowPowerBle_init(self):

@@ -7,6 +7,7 @@
 
 
 from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtWidgets import QTextEdit
 
 from module.iotLogAnalyzer.MTextEdit import MTextEdit
 
@@ -30,7 +31,7 @@ class Ui_frmComTool(object):
         self.horizontalLayout.setContentsMargins(1, 1, 1, 1)
         self.horizontalLayout.setSpacing(1)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.txtMain = MTextEdit(self.widgeMain)
+        self.txtMain = QTextEdit()
         self.txtMain.setObjectName("txtMain")
         self.horizontalLayout.addWidget(self.txtMain)
         self.widgetRight = QtWidgets.QWidget(self.widgeMain)

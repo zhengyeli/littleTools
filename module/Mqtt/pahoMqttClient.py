@@ -1,10 +1,9 @@
 import base64
 import hmac
+import time
 import urllib.parse
 
-import paho
 import paho.mqtt.client as mqtt
-import time
 
 hubAddress = 'a3d1vz6v56pkuw-ats.iot.us-east-1.amazonaws.com'
 deviceId = 'pycharm_00d6f8fd'

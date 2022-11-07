@@ -1,24 +1,18 @@
 import datetime
 import os
 import re
-import typing
-from datetime import time
-from distutils.util import strtobool
 
-from PyQt6 import QtSerialPort, QtWidgets, QtGui
-from PyQt6.QtCore import QSettings, QTimer, QIODevice, pyqtSignal, Qt, QByteArray, QDateTime, QFile, QTextStream, \
+from PyQt6 import QtGui
+from PyQt6.QtCore import QTimer, QIODevice, pyqtSignal, QDateTime, QFile, QTextStream, \
     QEvent, QObject
-from PyQt6.QtGui import QTextCursor, QColor, QFont, QKeyEvent, QTextCharFormat
-from PyQt6.QtNetwork import QTcpSocket, QUdpSocket, QHostAddress, QNetworkInterface, QAbstractSocket, QTcpServer, \
-    QNetworkDatagram
+from PyQt6.QtGui import QTextCursor, QColor, QTextCharFormat
+from PyQt6.QtNetwork import QTcpSocket, QUdpSocket, QHostAddress, QNetworkInterface, QAbstractSocket, QTcpServer
 from PyQt6.QtSerialPort import QSerialPort, QSerialPortInfo
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QComboBox, QCheckBox, QFileDialog, QTextEdit, \
-    QAbstractSlider
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QAbstractSlider
 
 from module.SerialPort.AppConfig import AppConfig
-from module.SerialPort.Ui_frmComTool import Ui_frmComTool
 from module.SerialPort.QuickSend import blockItemList
-from module.iotLogAnalyzer.MTextEdit import MTextEdit
+from module.SerialPort.Ui_frmComTool import Ui_frmComTool
 from module.test import test_wave
 from module.utils import utils
 
@@ -58,8 +52,8 @@ class FrmComTool(QObject, Ui_frmComTool):
             self.test = test_wave(self.plot)
 
         self.udpEventTuple = None
-        self.m_udpSocketlist = None
-        self.isinputText = True
+        self.m_udpSocketList = None
+        self.inputTextEnable = True
 
         self.maxCount = 50000
         self.currentCount = 0
@@ -106,7 +100,6 @@ class FrmComTool(QObject, Ui_frmComTool):
         try:
             self.ui.txtMain.signal_keyPressed.connect(self.keyPressEvent)
         except:
-            print("QTextEdit")
             # installEventFilter 会让QPlainTextEdit拖动条消失
             self.ui.txtMain.installEventFilter(self)
 
@@ -155,7 +148,7 @@ class FrmComTool(QObject, Ui_frmComTool):
                 if count > 0:
                     self.ui.txtMain.appendPlainText(data)
 
-            self.isinputText = True
+            self.inputTextEnable = True
             self.ui.txtMain.verticalScrollBar().setSliderPosition(self.ui.txtMain.verticalScrollBar().maximum())
 
     def eventFilter(self, obj, event):
@@ -203,7 +196,7 @@ class FrmComTool(QObject, Ui_frmComTool):
                     if count > 0:
                         self.ui.txtMain.appendPlainText(data)
 
-                self.isinputText = True
+                self.inputTextEnable = True
                 self.ui.txtMain.verticalScrollBar().setSliderPosition(self.ui.txtMain.verticalScrollBar().maximum())
             return True  # 表示停止处理该事件，此时目标对象和后面安装的事件过滤器就无法获得该事件
         else:
@@ -365,10 +358,8 @@ class FrmComTool(QObject, Ui_frmComTool):
         self.receiveCount = 0
 
     def comTool_btnData_clicked(self):
-        qwidget = QWidget()
-        dir = QFileDialog.getOpenFileName(qwidget, "select file", "", None)
-        # fileName = "{0}/{1}".format("./", "send.txt")
-        file = QFile(dir[0])
+        logFiledir = QFileDialog.getOpenFileName()
+        file = QFile(logFiledir[0])
 
         if file.exists() is False:
             return
@@ -514,7 +505,7 @@ class FrmComTool(QObject, Ui_frmComTool):
         else:
             try:
                 Str_data = str(QBA_data, encoding='utf-8')
-            except:
+            except Exception:
                 self.ui.txtMain.appendPlainText("转字符串失败")
                 return
 
@@ -538,7 +529,7 @@ class FrmComTool(QObject, Ui_frmComTool):
                 cursor.deletePreviousChar()
                 self.ui.txtMain.setTextCursor(cursor)
                 Str_data.remove(Str_data.indexOf("\b \b"), Str_data.indexOf("\b \b") + 3)
-                self.ui.txtMain.verticalScrollBar().triggerAction(QAbstractSlider.SliderToMaximum)
+                self.ui.txtMain.verticalScrollBar().triggerAction(QAbstractSlider.RenderFlag.SliderToMaximum)
                 data = Str_data.replace("\b \b", "")
 
         if self.isShow:
@@ -585,6 +576,8 @@ class FrmComTool(QObject, Ui_frmComTool):
 
         strData = strData.replace('\r', '')
         # strData = strData.replace("\n", "<br />")  # html's \r
+
+        strType = ""
         # 不同类型不同颜色显示
         if msg_from == 0:
             strType = "串口发送"
@@ -607,9 +600,9 @@ class FrmComTool(QObject, Ui_frmComTool):
 
         # 进度条在尾部，实时显示打印
         if self.ui.txtMain.verticalScrollBar().value() == self.ui.txtMain.verticalScrollBar().maximum():
-            self.isinputText = True
+            self.inputTextEnable = True
         else:
-            self.isinputText = False
+            self.inputTextEnable = False
 
         # 记录滑条的位置
         curBarPosition = self.ui.txtMain.verticalScrollBar().value()
@@ -636,7 +629,7 @@ class FrmComTool(QObject, Ui_frmComTool):
                 self.insertPlainColorText('WARN', QColor(255, 255, 0))
                 self.insertPlainColorText(stringList[1])
 
-            if self.isinputText:
+            if self.inputTextEnable:
                 self.ui.txtMain.update()
                 self.ui.txtMain.verticalScrollBar().setSliderPosition(self.ui.txtMain.verticalScrollBar().maximum())
             else:
@@ -654,7 +647,7 @@ class FrmComTool(QObject, Ui_frmComTool):
             self.ui.txtMain.insertPlainText(strData)
         self.ui.txtMain.insertPlainText("#")
 
-        if self.isinputText:
+        if self.inputTextEnable:
             self.ui.txtMain.update()
             self.ui.txtMain.verticalScrollBar().setSliderPosition(self.ui.txtMain.verticalScrollBar().maximum())
         else:
@@ -799,7 +792,7 @@ class FrmComTool(QObject, Ui_frmComTool):
 
         if self.udpOk:
             bytes_data = bytes(string, "utf-8")
-            self.udpsocket.writeDatagram(bytes_data, QHostAddress(self.AppConfig.ServerIP), \
+            self.udpsocket.writeDatagram(bytes_data, QHostAddress(self.AppConfig.ServerIP),
                                          int(self.AppConfig.ServerPort))
         if self.tcpOk or self.udpOk:
             self.comTool_Show_Append(4, string)
@@ -849,7 +842,7 @@ class FrmComTool(QObject, Ui_frmComTool):
                     self.udpOk = False
                     self.comTool_Show_Append(6, "连接 失败")
             elif mode == "Udp_Server":
-                if self.udpsocket.bind(QHostAddress.SpecialAddress.AnyIPv4, \
+                if self.udpsocket.bind(QHostAddress.SpecialAddress.AnyIPv4,
                                        int(self.AppConfig.ListenPort), QUdpSocket.BindFlag.DefaultForPlatform):
                     self.ui.btnStart.setText("停止")
                     self.comTool_Show_Append(6, "bind udp 成功")
@@ -895,9 +888,9 @@ class FrmComTool(QObject, Ui_frmComTool):
         mode = self.ui.cboxMode.currentText()
         if mode == "Udp_Client":
             data = "where are you?"
-            if self.m_udpSocketlist.isEmpty():
-                self.m_udpSocketlist = QNetworkInterface.allInterfaces()
-                for QNetworkInter in self.m_udpSocketlist:
+            if self.m_udpSocketList.isEmpty():
+                self.m_udpSocketList = QNetworkInterface.allInterfaces()
+                for QNetworkInter in self.m_udpSocketList:
                     for entry in QNetworkInter:
                         broadcastAddress = entry.broadcast()
                         if broadcastAddress != QHostAddress.SpecialAddress.Null and \
@@ -911,9 +904,9 @@ class FrmComTool(QObject, Ui_frmComTool):
                                 res = bytes(data, 'utf-8')
                                 sock.writeDatagram(res, QHostAddress.SpecialAddress.Broadcast,
                                                    self.AppConfig.ServerPort)
-                                self.m_udpSocketlist.append(sock)
+                                self.m_udpSocketList.append(sock)
             else:
-                for sock in self.m_udpSocketlist:
+                for sock in self.m_udpSocketList:
                     if sock.state() == QAbstractSocket.SocketState.BoundState:
                         sock.writeDatagram(data, QHostAddress.SpecialAddress.Broadcast, self.AppConfig.ServerPort)
         else:
@@ -1068,9 +1061,9 @@ class FrmComTool(QObject, Ui_frmComTool):
                 print(123)
                 if self.udpEventTuple is not None:
                     print(self.udpEventTuple.senderAddress().toString())
-                    destIp = self.udpEventTuple.senderAddress()
-                    destPort = self.udpEventTuple.senderPort()
-                    self.udpsocket.writeDatagram(data, destIp, destPort)
+                    desIp = self.udpEventTuple.senderAddress()
+                    desPort = self.udpEventTuple.senderPort()
+                    self.udpsocket.writeDatagram(data, desIp, desPort)
 
         if self.tcpOk:
             self.tcpsocket.write(data)

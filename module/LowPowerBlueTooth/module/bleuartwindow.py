@@ -9,6 +9,7 @@ from module.LowPowerBlueTooth.module.MPushButton import MPushButton
 
 class bleUartWindow:
     def __init__(self, BleMainClass):
+        self.toolBtn = None
         self.dockBleUart = QDockWidget()
         self.motherClass = BleMainClass
         self.motherWidget = BleMainClass.superWidget
@@ -62,11 +63,11 @@ class bleUartWindow:
         self.motherClass.creatNewDockWindow(self.dockBleUart, Qt.DockWidgetArea.TopDockWidgetArea)
         self.dockBleUart.setWidget(self.WidgetContents)
 
-        self.toolBtn = QToolButton() # 创建QToolButton
+        self.toolBtn = QToolButton()  # 创建QToolButton
         # self.toolBtn1.setIcon(QIcon(":/src/menu.png")) # 添加图标
         self.toolBtn.setText(self.dockBleUart.windowTitle())
         self.toolBtn.clicked.connect(self.closeWindow)
-        self.motherClass.toolbar.addWidget(self.toolBtn) # 向工具栏添加QToolButton按钮
+        self.motherClass.toolbar.addWidget(self.toolBtn)  # 向工具栏添加QToolButton按钮
         self.dockBleUart.setVisible(False)
 
         settings = QSettings("setting.ini", QSettings.Format.IniFormat)
@@ -79,10 +80,8 @@ class bleUartWindow:
                 self.loadFile(True)
 
     '''  dynamic add button '''
-    def addButton(self):
-        cmd = ""
-        buttonName = "ButtonN"
 
+    def addButton(self):
         name = QInputDialog.getText(self.WidgetContents, "我只是打酱油的~", "input button name", QLineEdit.EchoMode.Normal)
 
         if name[1]:
@@ -112,7 +111,6 @@ class bleUartWindow:
         else:
             self.motherClass.setInfo("firstButton is not null")
             self.tempButton = self.firstButton
-            ptemp = None  # last button
             while self.tempButton.nextButton is None:
                 self.tempButton = self.tempButton.nextButton
 
@@ -128,7 +126,7 @@ class bleUartWindow:
         self.tempButton.nextButton = None
         self.tempButton.prevButton = None
         self.tempButton.cmd = cmd
-        
+
         if self.tempButton is None:
             self.motherClass.setInfo("self.tempButton is null")
             return
@@ -144,7 +142,7 @@ class bleUartWindow:
 
         self.gridlayout.addWidget(self.tempButton, self.line, self.row)
 
-    def bleSendData(self, btn):
+    def bleSendData(self):
         mBtn = self.dockBleUart.sender()
         array = mBtn.cmd  # "aa11"
         self.motherClass.govee_ble_string_send(array)
@@ -162,8 +160,8 @@ class bleUartWindow:
             self.tempButton = self.tempButton.nextButton
 
         widget = QWidget()
-        dir = QFileDialog.getSaveFileName(widget, "save file", "")
-        file = QFile(dir[0])
+        saveFileDir = QFileDialog.getSaveFileName(widget, "save file", "")
+        file = QFile(saveFileDir[0])
         file.open(QFile.OpenModeFlag.WriteOnly)
         file.write(bytes(buf, 'utf-8'))
         file.close()
@@ -175,21 +173,21 @@ class bleUartWindow:
         if b:
             if self.last_dir is None:
                 return
-            dir = self.last_dir
+            bleSendFileDir = self.last_dir
         else:
             widget = QWidget()
             dirInfo = QFileDialog.getOpenFileName(widget, "load file", "")
-            dir = dirInfo[0]
+            bleSendFileDir = dirInfo[0]
 
-        if len(dir) == 0:
+        if len(bleSendFileDir) == 0:
             return
 
-        file = QFile(dir)
+        file = QFile(bleSendFileDir)
 
         if file.open(QFile.OpenModeFlag.ReadOnly):
             settings = QSettings("setting.ini", QSettings.Format.IniFormat)
             settings.beginGroup("BleUartConfig")
-            settings.setValue("config_dir", dir)
+            settings.setValue("config_dir", bleSendFileDir)
             settings.endGroup()
 
         buf = str(file.readAll(), "utf-8")
@@ -210,35 +208,35 @@ class bleUartWindow:
             del self.tempButton
             self.tempButton = None
 
-        list = re.split('\n', buf)
+        btnConfigList = re.split('\n', buf)
 
-        for i in range(0, len(list)):
-            if list[i] == "":
+        for i in range(0, len(btnConfigList)):
+            if btnConfigList[i] == "":
                 continue
 
-            btn = re.split("=", list[i])
+            btn = re.split("=", btnConfigList[i])
 
             if i == 0:
-                newbutton = MPushButton(self.WidgetContents)
-                newbutton.setMaximumHeight(30) #limit size
-                newbutton.setMaximumWidth(100)
-                newbutton.setText(btn[0].replace(' ', ''))
-                newbutton.cmd = btn[1].replace(' ', '')
-                self.firstButton = newbutton
+                newButton = MPushButton(self.WidgetContents)
+                newButton.setMaximumHeight(30)  # limit size
+                newButton.setMaximumWidth(100)
+                newButton.setText(btn[0].replace(' ', ''))
+                newButton.cmd = btn[1].replace(' ', '')
+                self.firstButton = newButton
                 self.firstButton.nextButton = None
                 self.firstButton.prevButton = None
                 self.tempButton = self.firstButton
             else:
-                newbutton = MPushButton(self.WidgetContents)
-                newbutton.setMaximumHeight(30) #lmit size
-                newbutton.setMaximumWidth(100)
-                newbutton.setText(btn[0])
-                newbutton.cmd = btn[1]
-                newbutton.prevButton = self.tempButton
-                newbutton.nextButton = None
+                newButton = MPushButton(self.WidgetContents)
+                newButton.setMaximumHeight(30)  # limit size
+                newButton.setMaximumWidth(100)
+                newButton.setText(btn[0])
+                newButton.cmd = btn[1]
+                newButton.prevButton = self.tempButton
+                newButton.nextButton = None
 
-                self.tempButton.nextButton = newbutton
-                self.tempButton = newbutton
+                self.tempButton.nextButton = newButton
+                self.tempButton = newButton
 
         self.tempButton = self.firstButton
         while self.tempButton is not None:
@@ -258,4 +256,3 @@ class bleUartWindow:
     def closeWindow(self):
         # self.motherClass.closeAllWindow()
         self.dockBleUart.setVisible(bool(1 - self.dockBleUart.isVisible()))
-

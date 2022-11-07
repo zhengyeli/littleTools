@@ -1,11 +1,11 @@
-from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtWidgets
 
-from Ui_MainWindow import Ui_MainWindow
 from MainWindow import MainWindow
-
+from Ui_MainWindow import Ui_MainWindow
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     Window = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()

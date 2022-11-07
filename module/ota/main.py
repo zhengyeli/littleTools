@@ -1,21 +1,12 @@
-import atexit
-import contextlib
 import json
-import multiprocessing
-import os
 import re
-import socket
 import sys
 import threading
 import urllib
 from datetime import datetime
-from functools import partial
-from http.server import HTTPServer, BaseHTTPRequestHandler, ThreadingHTTPServer, SimpleHTTPRequestHandler, \
-    CGIHTTPRequestHandler
 from time import sleep
 
-from PyQt6 import QtWidgets, QtGui
-from PyQt6.QtCore import QTimer, pyqtSignal, QObject
+from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QWidget, QFileDialog
 
 from module.ota.httpSimpleServer import httpServerBaseOnSocket
@@ -104,7 +95,7 @@ def goveeDev_httpServer_recvGet_handle(new_socket, request):
     print("处理请求：{}".format(file_name))
     try:
         f = open(file_name, 'rb+')
-    except:
+    except FileNotFoundError:
         response = "HTTP/1.1 404 NOT FOUND\r\n"
         response += "\r\n"
         response += "------file not found------"
@@ -169,7 +160,7 @@ class otaWindow():
         # 开进程启动服务器
         self.httpServer = httpServerBaseOnSocket()
         self.httpServer.methodRegister(goveeDev_httpServer_recvPost_handle, None, None,
-                                  goveeDev_httpServer_recvGet_handle)
+                                       goveeDev_httpServer_recvGet_handle)
         # 进程无法共享一个全局变量，需要其他手段进行进程间通信 self.httpServerProcess = multiprocessing.Process(
         # target=httpServer.httpServerStart, args=(ServerIp, serverPort))
         self.init()

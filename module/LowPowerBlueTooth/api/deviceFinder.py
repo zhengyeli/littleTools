@@ -1,8 +1,7 @@
-from PyQt6.QtBluetooth import QBluetoothDeviceDiscoveryAgent, QBluetoothDeviceInfo, QLowEnergyController
+from PyQt6.QtBluetooth import QBluetoothDeviceDiscoveryAgent, QBluetoothDeviceInfo
 from PyQt6.QtCore import pyqtSignal
 
 from module.LowPowerBlueTooth.api.deviceHandler import DeviceHandler
-from module.LowPowerBlueTooth.api.deviceinfo import DeviceInfo
 
 
 class DeviceFinder(DeviceHandler):
@@ -57,5 +56,3 @@ class DeviceFinder(DeviceHandler):
 
     def scanning(self):
         return self.m_deviceDiscoveryAgent.isActive()
-
-

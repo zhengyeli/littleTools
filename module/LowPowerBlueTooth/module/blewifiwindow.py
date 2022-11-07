@@ -1,9 +1,7 @@
 import math
-import struct
 
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import QDockWidget, QWidget, QGridLayout, QTextEdit, QPushButton, QToolButton
-from numpy import byte
 
 from module.utils import utils
 
@@ -20,7 +18,7 @@ class wifi_para:
         self.url = [0] * 129
 
 
-class bleconfigwifi:
+class blecConfigWifi:
     def __init__(self, bleMainWindow):
         self.byte_array = []
         self.send_str_maxIndex = 0
@@ -35,14 +33,16 @@ class bleconfigwifi:
         self.gridlayout = None
         self.dockBleWifi = None
         self.WidgetContents = None
+        self.text_Password = None
+        self.text_Ssid = None
 
         self.form_init()
 
     def form_init(self):
         self.dockBleWifi = QDockWidget()
         self.dockBleWifi.setFeatures(
-            QDockWidget.DockWidgetFeature.DockWidgetClosable | 
-            QDockWidget.DockWidgetFeature.DockWidgetMovable | 
+            QDockWidget.DockWidgetFeature.DockWidgetClosable |
+            QDockWidget.DockWidgetFeature.DockWidgetMovable |
             QDockWidget.DockWidgetFeature.DockWidgetFloatable)
 
         self.dockBleWifi.setWindowTitle("wifi")
@@ -62,12 +62,12 @@ class bleconfigwifi:
         self.text_Password.setMaximumHeight(30)
 
         button_clear_wifi = QPushButton(self.WidgetContents)
-        button_clear_wifi.setMaximumHeight(20) # limit
+        button_clear_wifi.setMaximumHeight(20)  # limit
         button_clear_wifi.setMinimumWidth(80)
         button_clear_wifi.setText("clear all")
 
         button_set_wifi = QPushButton(self.WidgetContents)
-        button_set_wifi.setMaximumHeight(20) # limit
+        button_set_wifi.setMaximumHeight(20)  # limit
         button_set_wifi.setMinimumWidth(80)
         button_set_wifi.setText("config wifi now")
 
@@ -77,7 +77,7 @@ class bleconfigwifi:
         self.gridlayout.addWidget(button_set_wifi, 1, 1)
 
         button_clear_wifi.clicked.connect(self.clear)
-        button_set_wifi.clicked.connect(self.setwifi)
+        button_set_wifi.clicked.connect(self.setWifi)
 
         self.motherClass.creatNewDockWindow(self.dockBleWifi, Qt.DockWidgetArea.TopDockWidgetArea)
         self.dockBleWifi.setWidget(self.WidgetContents)
@@ -91,7 +91,7 @@ class bleconfigwifi:
         self.text_Ssid.clear()
         self.text_Password.clear()
 
-    def setwifi(self):
+    def setWifi(self):
         url = "https://dev-device.govee.com"
         if len(self.text_Ssid.toPlainText()) == 0 or len(self.text_Password.toPlainText()) == 0:
             self.motherClass.setInfo("ssid or password is null")
@@ -133,7 +133,7 @@ class bleconfigwifi:
         self.send_str[0] = 0xa1
         self.send_str[1] = 0x11
         self.send_str_maxIndex = math.ceil(self.ble_Send_len / 16)
-        
+
     def timerSendWifi(self):
         if self.indexHadSend == 0:
             # first packet
@@ -143,7 +143,7 @@ class bleconfigwifi:
         elif 1 <= self.indexHadSend < self.send_str_maxIndex - 1:
             self.send_str[2:19] = [0] * 18
             self.send_str[2] = self.indexHadSend
-            self.send_str[3:19] = self.byte_array[16 * self.indexHadSend : 16 * self.indexHadSend + 16]
+            self.send_str[3:19] = self.byte_array[16 * self.indexHadSend: 16 * self.indexHadSend + 16]
         else:
             self.indexHadSend = 0
             self.send_str[2:19] = [0] * 18
@@ -162,4 +162,3 @@ class bleconfigwifi:
     def closeWindow(self):
         # self.motherClass.closeAllWindow()
         self.dockBleWifi.setVisible(bool(1 - self.dockBleWifi.isVisible()))
-

@@ -9,6 +9,8 @@ dict = {
     "True": True,
     "False": False,
 }
+
+
 class blockItem(QWidget):
     def __init__(self, isHex: bool, string: str):
         super().__init__()

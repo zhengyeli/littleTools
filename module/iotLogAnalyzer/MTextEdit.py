@@ -1,16 +1,16 @@
 from PyQt6 import QtGui
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QDragEnterEvent, QTextDocument, QPalette
-from PyQt6.QtWidgets import QTextEdit, QMessageBox, QWidget, QGridLayout, QLabel, QPushButton, QPlainTextEdit
+from PyQt6.QtWidgets import QMessageBox, QWidget, QPlainTextEdit, QTextEdit
 
 from module.iotLogAnalyzer.findStringAsk import Ui_search
 
 
-class MTextEdit(QPlainTextEdit):
+class MTextEdit(QTextEdit):
     signal_fileDragInput = pyqtSignal(str)
     signal_keyPressed = pyqtSignal(QtGui.QKeyEvent)
 
-    def __init__(self, parent):
+    def __init__(self):
         super(MTextEdit, self).__init__()
         self.textEdit_findStr = None
         self.setReadOnly(False)

@@ -1,17 +1,9 @@
 # api 1
-import json
 import os
-import re
 import socket
 import sys
-import urllib
-from datetime import datetime
 from functools import partial
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler, CGIHTTPRequestHandler
-from sqlite3 import Date
-from time import sleep
-
-from module.utils import utils
 
 
 class httpServerBaseOnSocket:

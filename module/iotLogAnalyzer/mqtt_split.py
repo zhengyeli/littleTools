@@ -1,10 +1,9 @@
+import base64
+import datetime
+import json
 import os
 import re
-import datetime
-import base64
-import json
 
-from PyQt6.QtCore import QFile, QIODevice, QTextStream
 LOG_FILE_PATH = "module/iotLogAnalyzer"
 LOG_FILE_NAME = "in_log.txt"
 DECODE_FILE_NAME = "out_log.txt"
@@ -35,44 +34,54 @@ cmd_from = {
 
 # stc 来源解释
 stc_from = [
-"MQTT_SOURCE_FROM_EVENTS",
-"MQTT_SOURCE_FROM_MQTT_CONNECT",
-"MQTT_SOURCE_FROM_MQTT_RECONNECT",
-"MQTT_SOURCE_FROM_MASTER_MCU",
-"MQTT_SOURCE_FROM_MASTER_MCU_BUTTON",
-"MQTT_SOURCE_FROM_LOCAL_TIMER",
-"MQTT_SOURCE_FROM_BLE",
-"MQTT_SOURCE_FROM_IOT",
-"MQTT_SOURCE_FROM_UNKNOWN",
-"MQTT_SOURCE_FROM_TEST",
-"MQTT_SOURCE_FROM_ANDROID",
-"MQTT_SOURCE_FROM_IPHONE",
-"MQTT_SOURCE_FROM_AUTO_TEST",
-"MQTT_SOURCE_FROM_ALEXA",
-"MQTT_SOURCE_FROM_GOOGLE",
-"MQTT_SOURCE_FROM_IFTTT",
-"MQTT_SOURCE_FROM_SIRI",
-"MQTT_SOURCE_FROM_OPENAPI",
-"MQTT_SOURCE_FROM_SERVER_TIMER",
-"MQTT_SOURCE_FROM_SERVER_READ",
+    "MQTT_SOURCE_FROM_EVENTS",
+    "MQTT_SOURCE_FROM_MQTT_CONNECT",
+    "MQTT_SOURCE_FROM_MQTT_RECONNECT",
+    "MQTT_SOURCE_FROM_MASTER_MCU",
+    "MQTT_SOURCE_FROM_MASTER_MCU_BUTTON",
+    "MQTT_SOURCE_FROM_LOCAL_TIMER",
+    "MQTT_SOURCE_FROM_BLE",
+    "MQTT_SOURCE_FROM_IOT",
+    "MQTT_SOURCE_FROM_UNKNOWN",
+    "MQTT_SOURCE_FROM_TEST",
+    "MQTT_SOURCE_FROM_ANDROID",
+    "MQTT_SOURCE_FROM_IPHONE",
+    "MQTT_SOURCE_FROM_AUTO_TEST",
+    "MQTT_SOURCE_FROM_ALEXA",
+    "MQTT_SOURCE_FROM_GOOGLE",
+    "MQTT_SOURCE_FROM_IFTTT",
+    "MQTT_SOURCE_FROM_SIRI",
+    "MQTT_SOURCE_FROM_OPENAPI",
+    "MQTT_SOURCE_FROM_SERVER_TIMER",
+    "MQTT_SOURCE_FROM_SERVER_READ",
 ]
+
 
 class Mqtt_Utils:
     log_dict = {}
     log_json = []
+    out_file_dir = None
+    in_file_dir = None
+    allLine = None
 
     def __init__(self):
-        self.out_file_dir = None
-        self.in_file_dir = None
+
         if os.path.exists(LOG_FILE_PATH) is False:
             os.makedirs(LOG_FILE_PATH)
         try:
-            self.in_file = open(LOG_FILE_PATH+'/'+LOG_FILE_NAME, mode='r', encoding='utf-8')
-            self.out_file = open(LOG_FILE_PATH+'/'+DECODE_FILE_NAME, mode='w', encoding='utf-8')
+            self.in_file = open(LOG_FILE_PATH + '/' + LOG_FILE_NAME, mode='r', encoding='utf-8')
+            self.out_file = open(LOG_FILE_PATH + '/' + DECODE_FILE_NAME, mode='w', encoding='utf-8')
         except FileNotFoundError:
-            print("create input file " + LOG_FILE_PATH+'/'+LOG_FILE_NAME)
-            self.in_file = open(LOG_FILE_PATH+'/'+LOG_FILE_NAME, mode='w+', encoding='utf-8')
-        self.in_file
+            print("create input file " + LOG_FILE_PATH + '/' + LOG_FILE_NAME)
+            self.in_file = open(LOG_FILE_PATH + '/' + LOG_FILE_NAME, mode='w+', encoding='utf-8')
+
+        try:
+            self.allLine = self.in_file.readlines()
+        except UnicodeDecodeError:
+            self.__del__()
+            self.in_file = open(LOG_FILE_PATH + '/' + LOG_FILE_NAME, mode='r', encoding='ansi')
+            self.out_file = open(LOG_FILE_PATH + '/' + DECODE_FILE_NAME, mode='w', encoding='utf-8')
+            self.allLine = self.in_file.readlines()
 
     def in_file_input(self, file_dir):
         self.__del__()
@@ -88,6 +97,15 @@ class Mqtt_Utils:
         except FileNotFoundError:
             print("create input file " + LOG_FILE_NAME)
             self.in_file = open(file_dir, mode='w+', encoding='utf-8')
+
+        # 检查文件是否可以以utf-8读取
+        try:
+            self.allLine = self.in_file.readlines()
+        except UnicodeDecodeError:
+            self.__del__()
+            self.in_file = open(self.in_file_dir, mode='r', encoding='ansi')
+            self.out_file = open(self.out_file_dir, mode='w', encoding='utf-8')
+            self.allLine = self.in_file.readlines()
 
     def __del__(self):
         try:
@@ -161,12 +179,14 @@ class Mqtt_Utils:
 
 class Mqtt_Prase:
     utils = Mqtt_Utils()
+    allLine = utils.allLine
 
     def __init__(self):
         self.log_dev_json = None
 
     def prase_custom_file_set(self, file_dir):
         self.utils.in_file_input(file_dir)
+        self.allLine = self.utils.allLine
 
     def prase_general_info(self, i_head, i_info):
         self.utils.output_to_file(str(i_head) + str(i_info))
@@ -228,23 +248,22 @@ class Mqtt_Prase:
         if -1 != file_line.find("bizType"):
             data_from = self.utils.split_log(file_line, "\"from\":\"", "\",\"transaction")
             if data_from != -1:
-                self.prase_general_info("from:\""+data_from+"\":", cmd_from[data_from])
+                self.prase_general_info("from:\"" + data_from + "\":", cmd_from[data_from])
 
     def prase_data_cmd_split_handle(self, file_line):
         if -1 != file_line.find("bizType"):
             data_cmd = self.utils.split_log(file_line, "\"cmd\":\"", "\",\"from")
             if data_cmd != -1:
-                self.utils.output_to_file("cmd:\""+data_cmd+"\"")
+                self.utils.output_to_file("cmd:\"" + data_cmd + "\"")
 
     def prase_data_stc_split_handle(self, file_line):
         if -1 != file_line.find("bizType"):
             data_from = self.utils.split_log(file_line, "\"from\":\"", "\",\"transaction")
             if data_from != -1:
-                self.prase_general_info("from:\""+data_from+"\":", cmd_from['x'])
+                self.prase_general_info("from:\"" + data_from + "\":", cmd_from['x'])
 
     def run_prase(self):
-        file_all_lines = Mqtt_Prase.utils.in_file.readlines()
-        for file_line in file_all_lines:
+        for file_line in self.allLine:
             if -1 != file_line.find("bizType"):
                 Mqtt_Prase.prase_data_from_split_handle(self, file_line)  # from
                 Mqtt_Prase.prase_data_cmd_split_handle(self, file_line)  # cmd

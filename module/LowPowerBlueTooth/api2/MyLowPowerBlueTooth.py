@@ -1,6 +1,3 @@
-import binascii
-
-from PyQt6.uic.properties import QtWidgets
 from PyQt6.QtBluetooth import QBluetoothDeviceDiscoveryAgent, QLowEnergyController, QLowEnergyService, QBluetoothUuid
 from PyQt6.QtCore import QByteArray, QTimer
 from PyQt6.QtWidgets import QApplication
@@ -90,7 +87,6 @@ class MyLowPowerBluetooth:
             else:
                 print("m_notificationDesc is null.")
 
-
             hex = "33 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 32"
             hex = hex.replace(' ', '')
 
@@ -101,6 +97,7 @@ class MyLowPowerBluetooth:
 
 if __name__ == "__main__":
     import sys
+
     app = QApplication(sys.argv)
     ble = MyLowPowerBluetooth()
     sys.exit(app.exec())
@@ -108,11 +105,3 @@ if __name__ == "__main__":
     # byte_array = bytearray(int_array)
     # print(bytearray.hex(byte_array))
     # print(bytes.fromhex(bytearray.hex(byte_array)))
-
-
-
-
-
-
-
-

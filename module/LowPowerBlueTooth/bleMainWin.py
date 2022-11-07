@@ -1,14 +1,20 @@
-from PyQt6.QtCore import Qt, QSettings
+from PyQt6 import QtWidgets
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMainWindow, QDockWidget, QTextEdit, QToolBar, QToolButton
 
-from module.LowPowerBlueTooth.api.BluetoothBaseClass import BluetoothBaseClass
+from module.LowPowerBlueTooth.api.deviceFinder import DeviceFinder
 from module.LowPowerBlueTooth.module.blelinkwindow import blelinkwindow
 from module.LowPowerBlueTooth.module.bleuartwindow import bleUartWindow
-from module.LowPowerBlueTooth.module.blewifiwindow import bleconfigwifi
+from module.LowPowerBlueTooth.module.blewifiwindow import blecConfigWifi
 from module.LowPowerBlueTooth.ui.Ui_BleMainWin import Ui_BleMainWin
-from module.LowPowerBlueTooth.api.deviceHandler import DeviceHandler
-from module.LowPowerBlueTooth.api.deviceFinder import DeviceFinder
-from PyQt6 import QtWidgets
+
+
+def Govee_Utils_GetBccCode(data_array):
+    ret = 0
+    for data in data_array:
+        ret ^= data
+
+    return ret
 
 
 class BleMainWin(QMainWindow):
@@ -34,15 +40,15 @@ class BleMainWin(QMainWindow):
 
         # --------------------------- dock widget window config
 
-        self.DockwidgetInfo = QtWidgets.QDockWidget()
+        self.DockWidgetInfo = QtWidgets.QDockWidget()
         self.text_info = QTextEdit()
         self.text_info.setReadOnly(True)
-        self.DockwidgetInfo.setWidget(self.text_info)
-        self.DockwidgetInfo.setObjectName("软件输出信息")
-        self.DockwidgetInfo.setWindowTitle("信息")
-        self.DockwidgetInfo.setVisible(True)
-        self.DockwidgetInfo.setStyleSheet("border:none")
-        self.superWidget.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.DockwidgetInfo)
+        self.DockWidgetInfo.setWidget(self.text_info)
+        self.DockWidgetInfo.setObjectName("软件输出信息")
+        self.DockWidgetInfo.setWindowTitle("信息")
+        self.DockWidgetInfo.setVisible(True)
+        self.DockWidgetInfo.setStyleSheet("border:none")
+        self.superWidget.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.DockWidgetInfo)
 
         # ----------------------------------------- 在工具栏添加图标按钮
         self.toolbar = QToolBar(self.superWidget)
@@ -50,11 +56,11 @@ class BleMainWin(QMainWindow):
         self.toolbar.setWindowTitle("toolbar")
         self.toolbar.setMovable(False)
 
-        self.DockwidgetInfo_toolBtn = QtWidgets.QToolButton(self.superWidget) # 创建QToolButton
-        self.DockwidgetInfo_toolBtn.setText(self.DockwidgetInfo.windowTitle())
-        self.toolbar.addWidget(self.DockwidgetInfo_toolBtn)
+        self.DockWidgetInfo_toolBtn = QtWidgets.QToolButton(self.superWidget)  # 创建QToolButton
+        self.DockWidgetInfo_toolBtn.setText(self.DockWidgetInfo.windowTitle())
+        self.toolbar.addWidget(self.DockWidgetInfo_toolBtn)
         self.superWidget.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolbar)
-        self.DockwidgetInfo_toolBtn.clicked.connect(self.DockwidgetInfo_btn_click)
+        self.DockWidgetInfo_toolBtn.clicked.connect(self.DockWidgetInfo_btn_click)
 
         # -----------------------------------------  second: ble api init
 
@@ -67,21 +73,18 @@ class BleMainWin(QMainWindow):
         # self.deviceHandler.disconnectOccur.connect(self.disconButton_clicked)
 
         # ----------------------------------------- other
-        self.blelink = blelinkwindow(self)
-        # self.blesku = bleskumsghandle()
-        # self.SocketClient = tcpSocketClient(self.superWidget)
-        self.bleuart = bleUartWindow(self)
-        # self.bleSensor = bleSensorWindow(self.superWidget)
-        self.blewifi = bleconfigwifi(self)
+        self.bleLink = blelinkwindow(self)
+        self.bleUart = bleUartWindow(self)
+        self.bleWifi = blecConfigWifi(self)
 
         self.text_info.append("tip :\n"
-                "   window              usage        \n"
-                "1. info : some software info print\n"
-                "2. manual : send uart cmd to mcu via ble \n"
-                "3. tcpsocket : use tcp socket talk with dev\n"
-                "4. blelink : connect to dev via ble\n"
-                "5. debug : view dev debug message via ble\n"
-                )
+                              "   window              usage        \n"
+                              "1. info : some software info print\n"
+                              "2. manual : send uart cmd to mcu via ble \n"
+                              "3. tcpSocket : use tcp socket talk with dev\n"
+                              "4. bleLink : connect to dev via ble\n"
+                              "5. debug : view dev debug message via ble\n"
+                              )
 
         self.superWidget.setStatusBar(None)
         self.superWidget.setMenuBar(None)
@@ -94,15 +97,15 @@ class BleMainWin(QMainWindow):
                              QDockWidget.DockWidgetFeature.DockWidgetFloatable)
 
         self.closeAllWindow()
-        self.DockwidgetInfo_btn_click()
+        self.DockWidgetInfo_btn_click()
 
     def setInfo(self, string):
         if self.text_info:
             self.text_info.append(string)
 
-    def DockwidgetInfo_btn_click(self):
+    def DockWidgetInfo_btn_click(self):
         # self.closeAllWindow()
-        self.DockwidgetInfo.setVisible(bool(1 - self.DockwidgetInfo.isVisible()))
+        self.DockWidgetInfo.setVisible(bool(1 - self.DockWidgetInfo.isVisible()))
 
     def closeAllWindow(self):
         dockList = self.superWidget.findChildren(QDockWidget)
@@ -129,10 +132,6 @@ class BleMainWin(QMainWindow):
     #     self.superWidget.resize(settings.value("size"))
     #     settings.endGroup()
     #
-    #     toolbtnList = self.toolbar.findChildren(QToolButton)
-    #     for toolbtn in toolbtnList:
-    #         if toolbtn.isChecked():
-    #             toolbtn.click()
 
     def creatNewDockWindow(self, w, a):
         self.superWidget.addDockWidget(a, w)
@@ -145,37 +144,21 @@ class BleMainWin(QMainWindow):
         self.deviceHandler.characteristicWrite(bytes.fromhex(string))
 
     def govee_ble_charArray_send(self, array):
-        array[19] = self.Govee_Utils_GetBccCode(array)
+        array[19] = Govee_Utils_GetBccCode(array)
         byteArray = bytearray(array)
         hex_string = bytearray.hex(byteArray)
         self.ble_bytes_send(bytes.fromhex(hex_string))
 
     def govee_ble_string_send(self, string):
-        hex = bytes.fromhex(string)
+        sendHex = bytes.fromhex(string)
         send_hex = [0] * 20
-        for i in range(0, len(hex)):
-            send_hex[i] = hex[i]
-        send_hex[19] = self.Govee_Utils_GetBccCode(send_hex)
+        for i in range(0, len(sendHex)):
+            send_hex[i] = sendHex[i]
+        send_hex[19] = Govee_Utils_GetBccCode(send_hex)
         byteArray = bytearray(send_hex)
         hex_string = bytearray.hex(byteArray)
         self.ble_bytes_send(bytes.fromhex(hex_string))
 
     def ble_rx_data_func(self, bytesArray):
         self.setInfo(str(bytesArray))
-        self.blelink.ble_rx_data_func(bytesArray)
-
-
-    def Govee_Utils_GetBccCode(self, data_array):
-        ret = 0
-        for data in data_array:
-            ret ^= data
-
-        return ret
-
-
-
-
-
-
-
-
+        self.bleLink.ble_rx_data_func(bytesArray)

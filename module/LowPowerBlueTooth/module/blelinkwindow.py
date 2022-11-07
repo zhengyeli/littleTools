@@ -1,8 +1,6 @@
-from PyQt6.QtBluetooth import QBluetoothDeviceInfo
-from PyQt6.QtWidgets import QWidget, QDockWidget, QLineEdit, QPushButton, QListWidget, QVBoxLayout, QHBoxLayout, \
-    QListWidgetItem
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import QSettings, Qt, QTimer
+from PyQt6.QtWidgets import QWidget, QLineEdit, QPushButton, QListWidget, QVBoxLayout, QHBoxLayout
 
 
 class blelinkwindow():
@@ -74,46 +72,46 @@ class blelinkwindow():
         # new QPushButton() 在空板上增加按键
         # new QPushButton(this) 在当前板上增加按键
         # new QPushButton(dock) 在dock板上增加按键
-        
-        #左布局
+
+        # 左布局
         left_verticalLayout = QVBoxLayout()
         # left_verticalLayout.setSpacing(20) # 间距
-        left_verticalLayout.setContentsMargins(5, 5, 5, 5) # setMargin可以设置左、上、右、下的外边距，设置之后，该函数可以主动设置
+        left_verticalLayout.setContentsMargins(5, 5, 5, 5)  # setMargin可以设置左、上、右、下的外边距，设置之后，该函数可以主动设置
         # left_verticalLayout.setObjectName(QString::fromUtf8("verticalLayout"))
         left_verticalLayout.addWidget(self.text_sku)
         left_verticalLayout.addWidget(self.text_ble_send)
-        
-        #右布局 
+
+        # 右布局
         right_verticalLayout = QVBoxLayout()
         # right_verticalLayout.setSpacing(20) # 间距
-        right_verticalLayout.setContentsMargins(5, 5, 5, 5) # setMargin可以设置左、上、右、下的外边距，设置之后，该函数可以主动设置
+        right_verticalLayout.setContentsMargins(5, 5, 5, 5)  # setMargin可以设置左、上、右、下的外边距，设置之后，该函数可以主动设置
         right_verticalLayout.addWidget(self.button_scan_sku)
         right_verticalLayout.addWidget(self.button_ble_send)
-        
-        #将两个垂直布局放入水平布局 
+
+        # 将两个垂直布局放入水平布局
         horizontalLayout = QHBoxLayout()
         # horizontalLayout.setSpacing(10) # 间距
-        horizontalLayout.setContentsMargins(5, 5, 5, 5) # setMargin可以设置左、上、右、下的外边距，设置之后，该函数可以主动设置
+        horizontalLayout.setContentsMargins(5, 5, 5, 5)  # setMargin可以设置左、上、右、下的外边距，设置之后，该函数可以主动设置
         horizontalLayout.addItem(left_verticalLayout)
         horizontalLayout.addItem(right_verticalLayout)
-        
-        #将剩余按钮放入水平布局 
+
+        # 将剩余按钮放入水平布局
         horizontalLayout1 = QHBoxLayout()
         # horizontalLayout1.setSpacing(10) # 间距
-        horizontalLayout1.setContentsMargins(5, 5, 5, 5) # setMargin可以设置左、上、右、下的外边距，设置之后，该函数可以主动设置
+        horizontalLayout1.setContentsMargins(5, 5, 5, 5)  # setMargin可以设置左、上、右、下的外边距，设置之后，该函数可以主动设置
         horizontalLayout1.addWidget(self.button_discon)
         horizontalLayout1.addWidget(self.button_stop)
         horizontalLayout1.addWidget(self.button_continue)
         horizontalLayout1.addWidget(self.button_clear)
-        
-        #将两个水平布局放入新的垂直布局 
+
+        # 将两个水平布局放入新的垂直布局
         updown_verticalLayout = QVBoxLayout(dockWidgetContents)
         updown_verticalLayout.addItem(horizontalLayout)
         updown_verticalLayout.addItem(horizontalLayout1)
         updown_verticalLayout.addWidget(self.cmd_send)
         updown_verticalLayout.addWidget(self.cmd_receive)
         updown_verticalLayout.addWidget(self.sku_list)
-        
+
         # 绑定控件的回调函数
         self.button_scan_sku.clicked.connect(self.scanButton_clicked)
         self.sku_list.itemClicked.connect(self.bleDevlist_itemClicked)
@@ -129,12 +127,12 @@ class blelinkwindow():
         self.dockblelink.setWidget(dockWidgetContents)
         # 进行布局
         self.superClass.superWidget.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, self.dockblelink)
-        
+
         self.toolBtn = QtWidgets.QToolButton()  # 创建QToolButton
         self.toolBtn.setText(self.dockblelink.windowTitle())
         self.toolBtn.clicked.connect(self.closeWindow)
         self.superClass.toolbar.addWidget(self.toolBtn)  # 向工具栏添加QToolButton按钮
-        
+
         self.dockblelink.setVisible(True)
 
     def sku_list_item_append(self, device):
@@ -198,6 +196,3 @@ class blelinkwindow():
 
     def ble_rx_data_func(self, bytesArray):
         self.cmd_receive.setText(str(bytesArray))
-
-
-    
