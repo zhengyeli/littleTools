@@ -4,6 +4,12 @@ __pycache__/*.pyc
 */__pycache__/*.pyc
 */*/__pycache__/*.pyc
 */*/*/__pycache__/*.pyc
+
+*.bin
+*/*.bin
+*/*/*.bin
+*/*/*/*.bin
+
 *.txt
 *.spec
 build/
