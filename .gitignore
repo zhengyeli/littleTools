@@ -16,3 +16,4 @@ build/
 dist/
 *.ini
 *.7z
+*.ini

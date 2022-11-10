@@ -5,7 +5,7 @@ import shutil
 
 class utils:
     @staticmethod
-    def bytes2hex(bytesData):
+    def bytes2hexString(bytesData):
         return bytes.hex(bytesData, ' ')
 
     @staticmethod

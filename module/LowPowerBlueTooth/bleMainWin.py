@@ -7,6 +7,7 @@ from module.LowPowerBlueTooth.module.blelinkwindow import blelinkwindow
 from module.LowPowerBlueTooth.module.bleuartwindow import bleUartWindow
 from module.LowPowerBlueTooth.module.blewifiwindow import blecConfigWifi
 from module.LowPowerBlueTooth.ui.Ui_BleMainWin import Ui_BleMainWin
+from module.utils import utils
 
 
 def Govee_Utils_GetBccCode(data_array):
@@ -43,12 +44,13 @@ class BleMainWin(QMainWindow):
         self.DockWidgetInfo = QtWidgets.QDockWidget()
         self.text_info = QTextEdit()
         self.text_info.setReadOnly(True)
+        self.text_info.document().setMaximumBlockCount(100)
         self.DockWidgetInfo.setWidget(self.text_info)
         self.DockWidgetInfo.setObjectName("软件输出信息")
         self.DockWidgetInfo.setWindowTitle("信息")
         self.DockWidgetInfo.setVisible(True)
         self.DockWidgetInfo.setStyleSheet("border:none")
-        self.superWidget.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.DockWidgetInfo)
+        self.superWidget.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, self.DockWidgetInfo)
 
         # ----------------------------------------- 在工具栏添加图标按钮
         self.toolbar = QToolBar(self.superWidget)
@@ -66,11 +68,7 @@ class BleMainWin(QMainWindow):
 
         self.deviceFinder = DeviceFinder(self.text_info)
         self.deviceHandler = self.deviceFinder.m_deviceHandler
-
-        # self.deviceFinder.scanDeviceResult.connect(self.addBleDevToList)
         self.deviceHandler.emit_bleMessageChange.connect(self.ble_rx_data_func)
-        # self.deviceHandler.connectSuccess.connect(self.bleConnectSuccess)
-        # self.deviceHandler.disconnectOccur.connect(self.disconButton_clicked)
 
         # ----------------------------------------- other
         self.bleLink = blelinkwindow(self)
@@ -78,12 +76,11 @@ class BleMainWin(QMainWindow):
         self.bleWifi = blecConfigWifi(self)
 
         self.text_info.append("tip :\n"
-                              "   window              usage        \n"
-                              "1. info : some software info print\n"
-                              "2. manual : send uart cmd to mcu via ble \n"
-                              "3. tcpSocket : use tcp socket talk with dev\n"
-                              "4. bleLink : connect to dev via ble\n"
-                              "5. debug : view dev debug message via ble\n"
+                              "window function\n"
+                              "1. info: software base info\n"
+                              "2. manual: send uart cmd to mcu via ble \n"
+                              "3. wifi: connect to ap\n"
+                              "4. bleLink: connect to dev via ble\n"
                               )
 
         self.superWidget.setStatusBar(None)
@@ -96,10 +93,9 @@ class BleMainWin(QMainWindow):
                              QDockWidget.DockWidgetFeature.DockWidgetMovable |
                              QDockWidget.DockWidgetFeature.DockWidgetFloatable)
 
-        self.closeAllWindow()
         self.DockWidgetInfo_btn_click()
 
-    def setInfo(self, string):
+    def setInfo(self, string: str):
         if self.text_info:
             self.text_info.append(string)
 
@@ -136,10 +132,10 @@ class BleMainWin(QMainWindow):
     def creatNewDockWindow(self, w, a):
         self.superWidget.addDockWidget(a, w)
 
-    def ble_bytes_send(self, byte):
+    def ble_bytes_send(self, byte: bytes):
         self.deviceHandler.characteristicWrite(byte)
 
-    def ble_string_send(self, string):
+    def ble_string_send(self, string: str):
         string = string.replace(' ', '')
         self.deviceHandler.characteristicWrite(bytes.fromhex(string))
 
@@ -155,10 +151,10 @@ class BleMainWin(QMainWindow):
         for i in range(0, len(sendHex)):
             send_hex[i] = sendHex[i]
         send_hex[19] = Govee_Utils_GetBccCode(send_hex)
-        byteArray = bytearray(send_hex)
-        hex_string = bytearray.hex(byteArray)
-        self.ble_bytes_send(bytes.fromhex(hex_string))
+        byteData = utils.intlist2bytes(send_hex)
+        self.ble_bytes_send(byteData)
+        self.setInfo("send: " + utils.bytes2hexString(byteData))
 
     def ble_rx_data_func(self, bytesArray):
-        self.setInfo(str(bytesArray))
+        self.setInfo("recv: " + utils.bytes2hexString(bytesArray))
         self.bleLink.ble_rx_data_func(bytesArray)

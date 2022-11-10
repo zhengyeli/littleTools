@@ -2,6 +2,8 @@ from PyQt6 import QtWidgets
 from PyQt6.QtCore import QSettings, Qt, QTimer
 from PyQt6.QtWidgets import QWidget, QLineEdit, QPushButton, QListWidget, QVBoxLayout, QHBoxLayout
 
+from module.utils import utils
+
 
 class blelinkwindow():
     def __init__(self, blemainWin):
@@ -123,6 +125,7 @@ class blelinkwindow():
 
         self.superClass.deviceFinder.signal_devicefound.connect(self.sku_list_item_append)
         self.superClass.deviceHandler.emit_bleConnectSuccessful.connect(self.bleDeviceConnectedOk)
+        self.superClass.deviceHandler.emit_bleMessageChange.connect(self.ble_rx_data_func)
 
         self.dockblelink.setWidget(dockWidgetContents)
         # 进行布局
@@ -191,8 +194,7 @@ class blelinkwindow():
         self.timer_keepAlive.start()
 
     def keepalive(self):
-        print("keep alive.")
         self.superClass.govee_ble_string_send("aa01")
 
-    def ble_rx_data_func(self, bytesArray):
-        self.cmd_receive.setText(str(bytesArray))
+    def ble_rx_data_func(self, Bytes: bytes):
+        self.cmd_receive.setText(utils.bytes2hexString(Bytes))
