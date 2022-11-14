@@ -46,6 +46,7 @@ class BleMainWin(QMainWindow):
         self.text_info.setReadOnly(True)
         self.text_info.document().setMaximumBlockCount(100)
         self.DockWidgetInfo.setWidget(self.text_info)
+        self.DockWidgetInfo.setMinimumWidth(300)
         self.DockWidgetInfo.setObjectName("软件输出信息")
         self.DockWidgetInfo.setWindowTitle("信息")
         self.DockWidgetInfo.setVisible(True)
@@ -141,9 +142,10 @@ class BleMainWin(QMainWindow):
 
     def govee_ble_charArray_send(self, array):
         array[19] = Govee_Utils_GetBccCode(array)
-        byteArray = bytearray(array)
-        hex_string = bytearray.hex(byteArray)
-        self.ble_bytes_send(bytes.fromhex(hex_string))
+        print(array)
+        byteData = utils.intlist2bytes(array)
+        self.ble_bytes_send(byteData)
+        print(byteData)
 
     def govee_ble_string_send(self, string):
         sendHex = bytes.fromhex(string)

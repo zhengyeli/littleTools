@@ -12,7 +12,7 @@ class DeviceFinder(DeviceHandler):
 
         self.m_deviceHandler = super()
         self.m_deviceDiscoveryAgent = QBluetoothDeviceDiscoveryAgent()
-        self.m_deviceDiscoveryAgent.setLowEnergyDiscoveryTimeout(0)
+        self.m_deviceDiscoveryAgent.setLowEnergyDiscoveryTimeout(10000)
         self.m_deviceDiscoveryAgent.deviceDiscovered.connect(self.addDevice)
         self.m_deviceDiscoveryAgent.errorOccurred.connect(self.scanError)
         self.m_deviceDiscoveryAgent.finished.connect(self.scanFinished)
@@ -40,6 +40,7 @@ class DeviceFinder(DeviceHandler):
         self.m_deviceHandler.setDevice(None)
 
         self.setInfo("Scanning for devices...")
+        self.m_deviceDiscoveryAgent.stop()
         self.m_deviceDiscoveryAgent.start(QBluetoothDeviceDiscoveryAgent.DiscoveryMethod.LowEnergyMethod)
 
     def stopSearch(self):

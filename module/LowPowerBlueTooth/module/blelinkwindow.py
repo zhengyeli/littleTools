@@ -38,6 +38,7 @@ class blelinkwindow():
         self.dockblelink = QtWidgets.QDockWidget()
         self.dockblelink.setWindowTitle("连接")
         self.dockblelink.setObjectName("连接蓝牙窗口")
+        self.dockblelink.setMaximumWidth(300)
 
         dockWidgetContents = QWidget(self.dockblelink)
         # dockWidgetContents.setGeometry(QRect(10, 10, 100, 400)) # 从屏幕上（10，10）位置开始（即为最左上角的点），显示一个30 * 35的界面（宽30，高35）
@@ -197,4 +198,4 @@ class blelinkwindow():
         self.superClass.govee_ble_string_send("aa01")
 
     def ble_rx_data_func(self, Bytes: bytes):
-        self.cmd_receive.setText(utils.bytes2hexString(Bytes))
+        self.cmd_receive.setText(bytes.hex(Bytes))

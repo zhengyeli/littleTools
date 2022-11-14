@@ -87,8 +87,7 @@ class DeviceHandler(BluetoothBaseClass):
             self.setInfo(str(newState))
 
     def updateInfoFromDev(self, c, value):
-        print(value)
-        self.emit_bleMessageChange.emit(bytes(value, "utf-8"))
+        self.emit_bleMessageChange.emit(bytes(value))
 
     def characteristicRead(self, c, value):
         self.setInfo("characteristicRead " + str(value))
@@ -127,16 +126,16 @@ class DeviceHandler(BluetoothBaseClass):
 
         self.emit_bleConnectSuccessful.emit()
 
-        self.m_notificationDesc = self.setChar.descriptor(QBluetoothUuid(
-            QBluetoothUuid.DescriptorType.ClientCharacteristicConfiguration
-        ))
-
-        if self.m_notificationDesc.isValid():
-            # QLowEnergyService.writeDescriptor()
-            self.m_service.writeDescriptor(self.m_notificationDesc, bytes.fromhex("0100"))
-        else:
-            self.setError("m_notificationDesc is null.")
-        self.m_service.readDescriptor(self.m_notificationDesc)
+        # self.m_notificationDesc = self.setChar.descriptor(QBluetoothUuid(
+        #     QBluetoothUuid.DescriptorType.ClientCharacteristicConfiguration
+        # ))
+        #
+        # if self.m_notificationDesc.isValid():
+        #     # QLowEnergyService.writeDescriptor()
+        #     self.m_service.writeDescriptor(self.m_notificationDesc, bytes.fromhex("0100"))
+        # else:
+        #     self.setError("m_notificationDesc is null.")
+        # self.m_service.readDescriptor(self.m_notificationDesc)
 
     def disconnectDevice(self):
         if self.m_control:

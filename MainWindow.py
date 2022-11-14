@@ -1,3 +1,5 @@
+import sys
+
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import QObject, QIODevice, QFile, QTextStream, QSettings
 from PyQt6.QtGui import QAction, QIcon, QPixmap
@@ -137,7 +139,10 @@ class MainWindow(QObject, Ui_MainWindow):
         elif name == "日志分析":
             self.ui.stackedWidget.setCurrentIndex(3)
         elif name == "用户退出":
-            exit(0)
+            try:
+                exit(0)
+            except:
+                sys.exit()
 
     def module_init(self):
         self.module_photoGraph_init()

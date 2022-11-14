@@ -52,7 +52,7 @@ class blecConfigWifi:
         self.gridlayout = QGridLayout(self.WidgetContents)
 
         self.text_Ssid = QTextEdit(self.WidgetContents)
-        self.text_Ssid.setText("Govee")
+        self.text_Ssid.setText("Govee-2.4g")
         self.text_Ssid.setMinimumHeight(30)
         self.text_Ssid.setMaximumHeight(30)
 
@@ -113,6 +113,7 @@ class blecConfigWifi:
         wifi_buf.time_offset = 8
 
         self.byte_array = utils().int2bytes(len(self.text_Ssid.toPlainText()))
+        print(utils().int2bytes(len(self.text_Ssid.toPlainText())))
         self.byte_array += bytes(self.text_Ssid.toPlainText(), 'utf-8')
         self.byte_array += utils().int2bytes(len(self.text_Password.toPlainText()))
         self.byte_array += bytes(self.text_Password.toPlainText(), 'utf-8')
@@ -132,21 +133,33 @@ class blecConfigWifi:
 
         self.send_str[0] = 0xa1
         self.send_str[1] = 0x11
-        self.send_str_maxIndex = math.ceil(self.ble_Send_len / 16)
+        self.send_str_maxIndex = math.ceil(len(self.byte_array) / 16)
+
+    def sendListClear(self):
+        for i in range(0, len(self.send_str)):
+            self.send_str[i] = 0
 
     def timerSendWifi(self):
         if self.indexHadSend == 0:
             # first packet
-            self.send_str[2:19] = [0] * 18
+            self.send_str[2:20] = [0] * 18
             self.send_str[2] = 0x00
-            self.send_str[3] = self.ble_Send_len - 2
-        elif 1 <= self.indexHadSend < self.send_str_maxIndex - 1:
-            self.send_str[2:19] = [0] * 18
+            self.send_str[3] = self.send_str_maxIndex
+        elif 1 <= self.indexHadSend < self.send_str_maxIndex:
+            self.send_str[2:20] = [0] * 18
+            index = (self.indexHadSend - 1)
             self.send_str[2] = self.indexHadSend
-            self.send_str[3:19] = self.byte_array[16 * self.indexHadSend: 16 * self.indexHadSend + 16]
+            self.send_str[3:19] = self.byte_array[16 * index: 16 * index + 16]
+        elif self.indexHadSend == self.send_str_maxIndex:
+            self.send_str[2:20] = [0] * 18
+            index = (self.indexHadSend - 1)
+            self.send_str[2] = self.indexHadSend
+            lastArray = self.byte_array[16 * index: len(self.byte_array) + 1]
+            for i in range(0, len(lastArray)):
+                self.send_str[i + 3] = lastArray[i]
         else:
             self.indexHadSend = 0
-            self.send_str[2:19] = [0] * 18
+            self.send_str[2:20] = [0] * 18
             self.send_str[2] = 0xff
             self.ble_Send_len = 0
             self.send_str_maxIndex = 0
@@ -156,8 +169,10 @@ class blecConfigWifi:
 
             self.motherClass.govee_ble_charArray_send(self.send_str)
             return
+
         self.indexHadSend += 1
         self.motherClass.govee_ble_charArray_send(self.send_str)
+        # print(len(self.send_str))
 
     def closeWindow(self):
         # self.motherClass.closeAllWindow()

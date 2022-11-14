@@ -13,20 +13,20 @@ class utils:
         return bytes.fromhex(stringHex)
 
     @staticmethod
-    def hex2int(hex):
-        return int(hex, 16)
+    def hex2int(Hex: str):
+        return int(Hex, 16)
 
     @staticmethod
     def int2hex(int):
         return hex(int)
 
     @staticmethod
-    def int2bytes(int):
-        return str(int).encode()
+    def int2bytes(inter: int, length=1):
+        return inter.to_bytes(length, 'big')
 
     @staticmethod
-    def bytes2int(bytes):
-        return int.from_bytes(bytes)
+    def bytes2int(byte):
+        return int.from_bytes(byte, 'big')
 
     @staticmethod
     def string2bytes(string):
