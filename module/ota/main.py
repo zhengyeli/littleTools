@@ -1,19 +1,23 @@
+import ctypes
 import json
 import re
 import sys
 import threading
+import traceback
 import urllib
 from datetime import datetime
 from time import sleep
 
 from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QWidget, QFileDialog
+from numpy import unicode_
 
 from module.ota.httpSimpleServer import httpServerBaseOnSocket
 from module.ota.otaWidget import Ui_OtaWidget
 from module.utils import utils
 
 hostFilePath = "C:/Windows/System32/drivers/etc/hosts"
+ServerHost = "factory-app.govee.com"
 ServerIp = "192.168.137.1"
 serverPort = 80
 
@@ -29,7 +33,12 @@ def goveeDev_httpServer_recvPost_handle(new_socket, request):
     if 'Content-Length' in request:  # 有主体内容
         if 'wifiVersionSoft' in body:  # OTA查询请求
             win.ui.pte_clientInfo.appendPlainText("govee设备查询升级...")
-            not_need_update = False
+
+            if utils.fileIsExists(otaFilePath):
+                not_need_update = False
+            else:
+                not_need_update = True
+
             if not_need_update:
                 reply = '{"data":{"dst":{"deviceDst":[],"timezoneID":"","sync":0}},"checkVersion":{"sku":"",' \
                         '"versionHard":"",' \
@@ -42,23 +51,32 @@ def goveeDev_httpServer_recvPost_handle(new_socket, request):
                                          "downloadUrl": "", "md5": "", "size": 0, "time": 27789835},
                         "message": "success", "status": 200}
                 # print(json.dumps(dist))
-                dist['checkVersion']['versionSoft'] = 'V1.00.06'
-                dist['checkVersion']['downloadUrl'] = "http://dev-app.govee.com" + '/ota.bin'
+                dist['checkVersion']['versionSoft'] = 'V1.00.99'
+                dist['checkVersion']['downloadUrl'] = "http://" + ServerHost + '/ota.bin'
                 dist['checkVersion']['md5'] = str(utils.fileMd5("./ota.bin")[8:24])
                 dist['checkVersion']['size'] = utils.fileSize("./ota.bin")
                 reply = json.dumps(dist, sort_keys=True, indent=2)
                 # 美化打印
                 # print(reply.encode('utf-8').decode('unicode_escape'))
-            win.ui.pte_serderInfo.appendPlainText("可升级")
-            new_socket.send(govee_httpServerResponse(reply))
 
-    if "gateway" in request:
+                win.ui.pte_serderInfo.appendPlainText("可升级")
+
+            try:
+                new_socket.send(govee_httpServerResponse(reply))
+            except:
+                print("unKnow error")
+
+    elif "gateway" in request:
         win.ui.pte_clientInfo.appendPlainText("请求网关信息")
 
-    if 'Connection: close' in request:  # 关闭链接请求
+    elif 'Connection: close' in request:  # 关闭链接请求
         win.ui.pte_clientInfo.appendPlainText("请求关闭连接")
-        new_socket.close()
         win.ui.pte_serderInfo.appendPlainText("关闭连接 ok")
+
+    try:
+        new_socket.close()
+    except:
+        print("close socket {}".format(new_socket))
 
 
 def govee_httpServerResponse(context: str):
@@ -124,18 +142,27 @@ def goveeDev_httpServer_recvGet_handle(new_socket, request):
         new_socket.send(response.encode("utf-8"))
         win.ui.pte_serderInfo.appendPlainText("升级中...")
         while True:
-            data = f.read(PerPackSize)
+            try:
+                data = f.read(PerPackSize)
+            except:
+                continue
             if data:
                 sleep(0.2)
                 packSendedSize += PerPackSize
                 win.ui.progressBar.setValue(int(packSendedSize / fileSize * 100))
                 # data += '\r\n'.encode("utf-8")
-                new_socket.send(data)
+                try:
+                    new_socket.send(data)
+                except:
+                    win.ui.pte_serderInfo.appendPlainText("升级中断！！！")
+                    f.close()
+                    return
             else:
                 break
         win.ui.pte_serderInfo.appendPlainText("升级ok~")
         print(f'文件发送成功！')
         f.close()
+        new_socket.close()
         # new_socket.send()
     # 关闭套接字
     # new_socket.close()
@@ -157,38 +184,41 @@ class otaWindow():
         global handler
         handler = self.ui.progressBar
 
-        # 开进程启动服务器
+        # 创建服务器
         self.httpServer = httpServerBaseOnSocket()
-        self.httpServer.methodRegister(goveeDev_httpServer_recvPost_handle, None, None,
-                                       goveeDev_httpServer_recvGet_handle)
+        # 注册回调
+        self.httpServer.methodRegister(goveeDev_httpServer_recvPost_handle, None, None, goveeDev_httpServer_recvGet_handle)
+        # 关闭主线程 同时关闭 子线程
+        self.httpServer.__setattr__("daemon", True)
+        # 创建线程 线程可以共享一个全局变量
+        # self.httpServerProcess = threading.Thread(target=self.httpServer.httpServerStart, args=(ServerIp, serverPort))
+
         # 进程无法共享一个全局变量，需要其他手段进行进程间通信 self.httpServerProcess = multiprocessing.Process(
         # target=httpServer.httpServerStart, args=(ServerIp, serverPort))
         self.init()
+        global win
+        win = self
 
     def __del__(self):
         try:
-            text = self.ui.pbt_dnsSet.text()
-            if text == "失效":
+            if self.fileData is not None:
                 dnsfile = open(hostFilePath, mode='w', encoding='utf-8')
                 dnsfile.write(self.fileData)
                 dnsfile.close()
-                self.ui.pbt_dnsSet.setText("生效")
+                self.fileData = None
         except:
             pass
         try:
-            self.httpServerProcess.kill()
+            self.httpServer.stop()
         except:
             print("kill error?")
 
     def init(self):
         self.ui.progressBar.setRange(0, 100)
         self.ui.progressBar.setValue(0)
-
         self.ui.let_serverIp.setText(ServerIp)
-
-        self.ui.let_dns.setText("dev-app.govee.com")
+        self.ui.let_dns.setText(ServerHost)
         self.ui.pbt_dnsSet.clicked.connect(lambda: self.dnsConfigSet())
-
         self.ui.pbt_otaFileLoad.clicked.connect(self.loadOtaFile)
 
     def loadOtaFile(self):
@@ -204,39 +234,71 @@ class otaWindow():
         text = self.ui.pbt_dnsSet.text()
         Ip = self.ui.let_serverIp.text()
         global ServerIp
+        global ServerHost
+        ServerHost = dns
+
+        if Ip is not None and len(Ip) > 0:
+            ServerIp = Ip
+        else:
+            pass
+
         if text == "生效":
+            # 尝试打开host文件读取
             try:
                 dnsfile = open(hostFilePath, mode='r', encoding='utf-8')
                 self.fileData = dnsfile.read()
                 dnsfile.close()
-
             except FileNotFoundError:
                 print(hostFilePath + " not found")
 
             if self.fileData is not None:
+                # 尝试修改host文件
+                if utils.is_admin():
+                    try:
+                        dnsfile = open(hostFilePath, mode='w', encoding='utf-8')
+                        dnsfile.write(self.fileData + '\n' + ServerIp + ' ' + dns)
+                        dnsfile.close()
+                        self.ui.pbt_dnsSet.setText("失效")
+                    except:
+                        pass
+                else:
+                    if sys.version_info[0] == 3:
+                        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+                    else:  # in python2.x
+                        ctypes.windll.shell32.ShellExecuteW(None, u"runas", unicode_(sys.executable),
+                                                            unicode_(__file__), None, 1)
+                    self.ui.pte_serderInfo.appendPlainText("需要获取管理权限！！！")
+                    # ide下无法生效，处于非ide下时需要手动退出
+                    # try:
+                    #     exit(0)
+                    # except:
+                    #     sys.exit()
+            self.httpServer.configSet(ServerIp, serverPort)
+            try:
+                self.httpServer.start()
+            except RuntimeError:
+                print(str(traceback.format_exc()))
                 try:
-                    dnsfile = open(hostFilePath, mode='w', encoding='utf-8')
-                    dnsfile.write(self.fileData + '\n' + ServerIp + ' ' + dns)
-                    dnsfile.close()
-                    if Ip is not None and len(Ip) > 0:
-                        ServerIp = Ip
-                    # 线程可以共享一个全局变量
-                    self.httpServerProcess = threading.Thread(target=self.httpServer.httpServerStart,
-                                                              args=(ServerIp, serverPort))
-                    self.httpServerProcess.start()
-                    self.ui.pbt_dnsSet.setText("失效")
+                    self.httpServer.reStart()
                 except:
-                    self.httpServerProcess = threading.Thread(target=httpServerBaseOnSocket().httpServerStart,
-                                                              args=(ServerIp, serverPort))
-                    self.httpServerProcess.start()
+                    self.ui.pte_serderInfo.appendPlainText("无效的ip")
+
+            self.ui.pbt_dnsSet.setText("失效")
 
         elif text == "失效":
-            dnsfile = open(hostFilePath, mode='w', encoding='utf-8')
-            dnsfile.write(self.fileData)
-            dnsfile.close()
+            if self.fileData is not None:
+                try:
+                    dnsfile = open(hostFilePath, mode='w', encoding='utf-8')
+                    dnsfile.write(self.fileData)
+                    dnsfile.close()
+                    self.fileData = None
+                except:
+                    pass
+
             self.ui.pbt_dnsSet.setText("生效")
             try:
-                self.httpServerProcess.kill()
+                # 需要关闭线程 fixme
+                self.httpServer.stop()
             except:
                 print("stop error?")
 

@@ -1,3 +1,4 @@
+import ctypes
 import hashlib
 import os
 import shutil
@@ -78,6 +79,10 @@ class utils:
             print("copy %s -> %s" % (srcfile, dstpath + fname))
 
     @staticmethod
+    def fileIsExists(srcfileName):  # 复制并重命名函数
+        return os.path.exists(srcfileName)
+
+    @staticmethod
     def mycopyfileChangeName(srcfileName, dstpathName):  # 复制并重命名函数
         if not os.path.isfile(srcfileName):
             print("%s not exist!" % (srcfileName))
@@ -89,3 +94,10 @@ class utils:
             shutil.copy(srcfileName, dfname)  # 复制文件
             print("copy %s -> %s" % (srcfileName, dfname))
             # shutil.move(srcfileName, dstpathName)
+
+    @staticmethod
+    def is_admin():
+        try:
+            return ctypes.windll.shell32.IsUserAnAdmin()
+        except:
+            return False

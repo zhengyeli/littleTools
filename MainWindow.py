@@ -1,3 +1,4 @@
+import subprocess
 import sys
 
 from PyQt6 import QtCore, QtWidgets
@@ -154,7 +155,15 @@ class MainWindow(QObject, Ui_MainWindow):
     def module_ota_init(self):
         self.actionOta = QAction(QIcon(QPixmap(":/src/2.png")), "Govee ota")
         self.menuSetting.addAction(self.actionOta)
-        self.actionOta.triggered.connect(lambda: otaWindow(None))
+        self.actionOta.triggered.connect(self.module_ota_start)
+
+    def module_ota_start(self):
+        # pass
+        otaWindow(None)
+        # try:
+        #     subprocess.Popen("./ota/main.exe")
+        # except:
+        #     pass
 
     def module_logAnalyse_init(self):
         govee_mqtt_log(self)
