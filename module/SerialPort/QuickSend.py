@@ -3,7 +3,7 @@ import re
 from PyQt6.QtCore import QSettings, QFile
 from PyQt6.QtWidgets import QWidget, QGridLayout, QCheckBox, QLineEdit, QPushButton, QFileDialog, QLabel
 
-from module.utils import utils
+from sdk_src.utils import utils
 
 dict = {
     "True": True,

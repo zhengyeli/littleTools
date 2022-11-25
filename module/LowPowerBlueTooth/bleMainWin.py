@@ -7,7 +7,7 @@ from module.LowPowerBlueTooth.module.blelinkwindow import blelinkwindow
 from module.LowPowerBlueTooth.module.bleuartwindow import bleUartWindow
 from module.LowPowerBlueTooth.module.blewifiwindow import blecConfigWifi
 from module.LowPowerBlueTooth.ui.Ui_BleMainWin import Ui_BleMainWin
-from module.utils import utils
+from sdk_src.utils import utils
 
 
 def Govee_Utils_GetBccCode(data_array):

@@ -2,7 +2,6 @@ import ctypes
 import json
 import re
 import sys
-import threading
 import traceback
 import urllib
 from datetime import datetime
@@ -14,7 +13,7 @@ from numpy import unicode_
 
 from module.ota.httpSimpleServer import httpServerBaseOnSocket
 from module.ota.otaWidget import Ui_OtaWidget
-from module.utils import utils
+from sdk_src.utils import utils
 
 hostFilePath = "C:/Windows/System32/drivers/etc/hosts"
 ServerHost = "factory-app.govee.com"

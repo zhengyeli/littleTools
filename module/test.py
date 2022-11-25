@@ -5,9 +5,7 @@ from PyQt6 import QtGui
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QLabel, QGridLayout
 
-from module.Mqtt.pahoMqttClient import govee_mqtt_client
-from module.photograph.graphDraw import BasicArrayPlot, dynamicArrayPlot
-from module.utils import utils
+from sdk_src.utils import utils
 
 DistanceFilterMaxIndex = 8
 calculacy = 0.5

@@ -2,8 +2,6 @@ from PyQt6 import QtWidgets
 from PyQt6.QtCore import QSettings, Qt, QTimer
 from PyQt6.QtWidgets import QWidget, QLineEdit, QPushButton, QListWidget, QVBoxLayout, QHBoxLayout
 
-from module.utils import utils
-
 
 class blelinkwindow():
     def __init__(self, blemainWin):

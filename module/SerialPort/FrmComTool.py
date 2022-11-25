@@ -14,7 +14,7 @@ from module.SerialPort.AppConfig import AppConfig
 from module.SerialPort.QuickSend import blockItemList
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
 from module.test import test_wave
-from module.utils import utils
+from sdk_src.utils import utils
 
 rxBufSize = 512
 

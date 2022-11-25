@@ -3,7 +3,7 @@ import math
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import QDockWidget, QWidget, QGridLayout, QTextEdit, QPushButton, QToolButton
 
-from module.utils import utils
+from sdk_src.utils import utils
 
 
 class wifi_para:
