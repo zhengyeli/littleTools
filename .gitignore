@@ -10,6 +10,11 @@ __pycache__/*.pyc
 */*/*.bin
 */*/*/*.bin
 
+*.iml
+*/*.iml
+*/*/*.iml
+*/*/*/*.iml
+
 *.txt
 *.spec
 build/

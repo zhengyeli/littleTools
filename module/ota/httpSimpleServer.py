@@ -44,7 +44,6 @@ class httpServerBaseOnSocket(threading.Thread):
     def service_client(self, new_socket):
         # 为这个客户端返回数据
         # 1.接收浏览器发过来的请求，即http请求
-        # GET / HTTP/1.1
 
         request = new_socket.recv(1024).decode('utf-8')
         # print(request)

@@ -3,7 +3,7 @@ import sys
 
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import QObject, QIODevice, QFile, QTextStream, QSettings
-from PyQt6.QtGui import QAction, QIcon, QPixmap
+from PyQt6.QtGui import QIcon, QPixmap, QAction
 from PyQt6.QtWidgets import QTabBar, QMenu, QWidget, QFileDialog
 
 from Ui_MainWindow import Ui_MainWindow

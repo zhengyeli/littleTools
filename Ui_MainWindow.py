@@ -7,8 +7,8 @@
 
 
 from PyQt6 import QtCore, QtGui, QtWidgets
-
 import image.image
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -51,7 +51,7 @@ class Ui_MainWindow(object):
         self.btnMain.setSizePolicy(sizePolicy)
         self.btnMain.setFocusPolicy(QtCore.Qt.FocusPolicy.ClickFocus)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/image/main_main.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon.addPixmap(QtGui.QPixmap(":/main_main.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.btnMain.setIcon(icon)
         self.btnMain.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         self.btnMain.setObjectName("btnMain")
@@ -63,7 +63,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.btnConfig.sizePolicy().hasHeightForWidth())
         self.btnConfig.setSizePolicy(sizePolicy)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/image/main_config.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon1.addPixmap(QtGui.QPixmap(":/main_config.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.btnConfig.setIcon(icon1)
         self.btnConfig.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         self.btnConfig.setObjectName("btnConfig")
@@ -75,7 +75,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.btnData.sizePolicy().hasHeightForWidth())
         self.btnData.setSizePolicy(sizePolicy)
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(":/image/main_data.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon2.addPixmap(QtGui.QPixmap(":/main_data.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.btnData.setIcon(icon2)
         self.btnData.setChecked(False)
         self.btnData.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
@@ -89,7 +89,7 @@ class Ui_MainWindow(object):
         self.btnHelp.setSizePolicy(sizePolicy)
         self.btnHelp.setStyleSheet("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(":/image/main_person.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon3.addPixmap(QtGui.QPixmap(":/main_person.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.btnHelp.setIcon(icon3)
         self.btnHelp.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         self.btnHelp.setObjectName("btnHelp")
@@ -102,7 +102,7 @@ class Ui_MainWindow(object):
         self.btnExit.setSizePolicy(sizePolicy)
         self.btnExit.setStyleSheet("")
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(":/image/main_exit.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon4.addPixmap(QtGui.QPixmap(":/main_exit.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.btnExit.setIcon(icon4)
         self.btnExit.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         self.btnExit.setObjectName("btnExit")
@@ -158,6 +158,8 @@ class Ui_MainWindow(object):
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 22))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
+        self.actionDADA = QtGui.QAction(MainWindow)
+        self.actionDADA.setObjectName("actionDADA")
 
         self.retranslateUi(MainWindow)
         self.stackedWidget.setCurrentIndex(0)
@@ -172,3 +174,4 @@ class Ui_MainWindow(object):
         self.btnHelp.setText(_translate("MainWindow", "日志分析"))
         self.btnExit.setText(_translate("MainWindow", "用户退出"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "页"))
+        self.actionDADA.setText(_translate("MainWindow", "DADA"))

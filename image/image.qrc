@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main_about.png</file>
+        <file>main_company.png</file>
+        <file>main_config.png</file>
+        <file>main_data.png</file>
+        <file>main_exit.png</file>
+        <file>main_help.png</file>
+        <file>main_main.png</file>
+        <file>main_person.png</file>
+    </qresource>
+</RCC>
