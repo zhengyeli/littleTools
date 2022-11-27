@@ -15,9 +15,9 @@ from PyQt6.QtWidgets import QWidget, QFileDialog
 from numpy import unicode_
 
 
-from module.ota.httpSimpleServer import httpServerBaseOnSocket
-from module.ota.otaWidget import Ui_OtaWidget
-from sdk_src.utils import utils
+from httpSimpleServer import httpServerBaseOnSocket
+from ota.otaWidget import Ui_OtaWidget
+from utils import utils
 
 hostFilePath = "C:/Windows/System32/drivers/etc/hosts"
 ServerHost = "factory-app.govee.com"
