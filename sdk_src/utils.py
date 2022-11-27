@@ -44,6 +44,12 @@ class utils:
         return bytes.fromhex(hex_string)
 
     @staticmethod
+    def bytearray2hexString(byteArray: bytearray):
+        """底下byteArray是原始数据，该函数只是为了输出看起来更加清晰"""
+        hexString = ' '.join(hex(x) for x in byteArray)
+        return hexString
+
+    @staticmethod
     def string2intlist(string):
         hex = bytes.fromhex(string)
         send_hex = [0] * len(hex)
