@@ -16,7 +16,7 @@ from numpy import unicode_
 
 
 from httpSimpleServer import httpServerBaseOnSocket
-from ota.otaWidget import Ui_OtaWidget
+from otaWidget import Ui_OtaWidget
 from utils import utils
 
 hostFilePath = "C:/Windows/System32/drivers/etc/hosts"
