@@ -3,6 +3,8 @@ import datetime
 import json
 import os
 import re
+import chardet
+
 
 LOG_FILE_PATH = "module/iotLogAnalyzer"
 LOG_FILE_NAME = "in_log.txt"
@@ -69,7 +71,12 @@ class Mqtt_Utils:
         if os.path.exists(LOG_FILE_PATH) is False:
             os.makedirs(LOG_FILE_PATH)
         try:
-            self.in_file = open(LOG_FILE_PATH + '/' + LOG_FILE_NAME, mode='r', encoding='utf-8')
+            file = open(LOG_FILE_PATH + '/' + LOG_FILE_NAME, 'rb')
+            # print(chardet.detect(file.read())['encoding'])
+            # 尝试获取文本的编码格式
+            encodingType = chardet.detect(file.read())['encoding']
+            file.close()
+            self.in_file = open(LOG_FILE_PATH + '/' + LOG_FILE_NAME, mode='r', encoding=encodingType)
             self.out_file = open(LOG_FILE_PATH + '/' + DECODE_FILE_NAME, mode='w', encoding='utf-8')
         except FileNotFoundError:
             print("create input file " + LOG_FILE_PATH + '/' + LOG_FILE_NAME)
@@ -85,9 +92,13 @@ class Mqtt_Utils:
 
     def in_file_input(self, file_dir):
         self.__del__()
-
+        file = open(file_dir, 'rb')
+        # print(chardet.detect(file.read())['encoding'])
+        # 尝试获取文本的编码格式
+        encodingType = chardet.detect(file.read())['encoding']
+        file.close()
         try:
-            self.in_file = open(file_dir, mode='r', encoding='utf-8')
+            self.in_file = open(file_dir, mode='r', encoding=encodingType)
             last_index = file_dir.rindex('/')
             out_file_dir = file_dir[:last_index] + '/out.txt'
             self.out_file = open(out_file_dir, mode='w', encoding='utf-8')
@@ -97,15 +108,6 @@ class Mqtt_Utils:
         except FileNotFoundError:
             print("create input file " + LOG_FILE_NAME)
             self.in_file = open(file_dir, mode='w+', encoding='utf-8')
-
-        # 检查文件是否可以以utf-8读取
-        try:
-            self.allLine = self.in_file.readlines()
-        except UnicodeDecodeError:
-            self.__del__()
-            self.in_file = open(self.in_file_dir, mode='r', encoding='ansi')
-            self.out_file = open(self.out_file_dir, mode='w', encoding='utf-8')
-            self.allLine = self.in_file.readlines()
 
     def __del__(self):
         try:
@@ -180,8 +182,10 @@ class Mqtt_Utils:
 class Mqtt_Prase:
     utils = Mqtt_Utils()
     allLine = utils.allLine
+    sku = "H7160"
 
     def __init__(self):
+        self.log_json = None
         self.log_dev_json = None
 
     def prase_custom_file_set(self, file_dir):
@@ -211,15 +215,23 @@ class Mqtt_Prase:
             base64_data = base64.b64decode(i)
             self.prase_general_info("", self.utils.format_hex(base64_data))
             if base64_data[1] == 0x10:
-                humi = base64_data[3] << 16 | base64_data[4] << 8 | base64_data[5]
-                self.utils.output_to_file("ht: " + str(humi))
-                # temper = base64_data[3] << 8 | base64_data[4]
-                # self.utils.output_to_file('temper:' + str(temper) + "F")
+                if "717" in self.sku:
+                    temper = base64_data[3] << 8 | base64_data[4]
+                    self.utils.output_to_file('temper:' + str(temper) + "F")
+                else:
+                    humi = base64_data[3] << 16 | base64_data[4] << 8 | base64_data[5]
+                    self.utils.output_to_file("ht: " + str(humi))
 
     def prase_json_info(self):
+        if self.log_json is None:
+            print("self.log_json is NONE")
+            return
         try:
             self.log_dev_json = json.loads(str(self.log_json))
         except:
+            return
+
+        if self.log_dev_json == -1:
             return
 
         if 'warn' in self.log_dev_json:
@@ -242,7 +254,8 @@ class Mqtt_Prase:
             self.log_json = self.utils.split_log(file_line, "\"message\":\"", "\",\"@timestamp")
             new_string = self.utils.format_mac(file_line)
             new_string = self.utils.remove_log(new_string, "\"message\":\"", "\"@timestamp")
-            self.utils.renew_log(new_string)
+            if new_string is not None:
+                self.utils.renew_log(new_string)
 
     def prase_data_from_split_handle(self, file_line):
         if -1 != file_line.find("bizType"):
@@ -262,9 +275,16 @@ class Mqtt_Prase:
             if data_from != -1:
                 self.prase_general_info("from:\"" + data_from + "\":", cmd_from['x'])
 
+    def prase_data_sku_split_handle(self, file_line):
+        if -1 != file_line.find("bizType"):
+            sku = self.utils.split_log(file_line, "\"sku\":\"", "\",\"cmd")
+            if sku != -1:
+                self.sku = sku
+
     def run_prase(self):
         for file_line in self.allLine:
             if -1 != file_line.find("bizType"):
+                Mqtt_Prase.prase_data_sku_split_handle(self, file_line)
                 Mqtt_Prase.prase_data_from_split_handle(self, file_line)  # from
                 Mqtt_Prase.prase_data_cmd_split_handle(self, file_line)  # cmd
                 Mqtt_Prase.prase_data_line_split_handle(self, file_line)  # 截取message数据

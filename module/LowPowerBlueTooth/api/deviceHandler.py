@@ -1,3 +1,5 @@
+from time import sleep
+
 from PyQt6.QtBluetooth import QBluetoothUuid, QLowEnergyService, QLowEnergyController
 from PyQt6.QtCore import QTimer, pyqtSignal
 
@@ -6,7 +8,7 @@ from module.LowPowerBlueTooth.api.BluetoothBaseClass import BluetoothBaseClass
 
 class DeviceHandler(BluetoothBaseClass):
     emit_bleMessageChange = pyqtSignal(bytes)
-    emit_bleConnectSuccessful = pyqtSignal()
+    emit_bleConnectSuccessful = pyqtSignal(bool)
 
     def __init__(self, bthBaseWidget):
         super().__init__(bthBaseWidget)
@@ -61,6 +63,7 @@ class DeviceHandler(BluetoothBaseClass):
             self.m_control.connectToDevice()
 
     def connectSuccessful(self):
+        self.emit_bleConnectSuccessful.emit(True)
         self.setInfo("Connect successful.")
         self.m_control.discoverServices()
 
@@ -123,8 +126,6 @@ class DeviceHandler(BluetoothBaseClass):
 
         if self.setChar.isValid() is False:
             self.setError("setChar not found.")
-
-        self.emit_bleConnectSuccessful.emit()
 
         # self.m_notificationDesc = self.setChar.descriptor(QBluetoothUuid(
         #     QBluetoothUuid.DescriptorType.ClientCharacteristicConfiguration

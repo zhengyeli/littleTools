@@ -183,14 +183,15 @@ class blelinkwindow():
         self.superClass.setInfo("clear")
 
     def bleDevlist_itemClicked(self, item):
-        sku = self.button_scan_sku.text()
-        if sku == "stop":
+        text = self.button_scan_sku.text()
+        if text == "stop":
             self.button_scan_sku.setText("scan")
             self.superClass.deviceFinder.stopSearch()
         self.superClass.deviceFinder.connectToDevice(item.text())
 
-    def bleDeviceConnectedOk(self):
-        self.timer_keepAlive.start()
+    def bleDeviceConnectedOk(self, ok: bool):
+        if ok and self.timer_keepAlive is not None:
+            self.timer_keepAlive.start()
 
     def keepalive(self):
         self.superClass.govee_ble_string_send("aa01")

@@ -21,9 +21,12 @@ class BluetoothBaseClass(QObject):
             # print("ERR|" + errString)
 
     def setInfo(self, infoString):
-        if self.baseInfoShow is not None:
-            self.baseInfoShow.append("INO|" + infoString)
-            # print("INO|" + infoString)
+        try:
+            if self.baseInfoShow is not None:
+                self.baseInfoShow.append("INO|" + infoString)
+                # print("INO|" + infoString)
+        except Exception as e:
+            print(e)
 
     def clear(self):
         if self.baseInfoShow is not None:

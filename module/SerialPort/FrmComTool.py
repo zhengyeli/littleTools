@@ -36,7 +36,7 @@ hotkey = [
     "log disable scan",
 ]
 
-test_wave_enable = False
+test_wave_enable = True
 
 
 class FrmComTool(QObject, Ui_frmComTool):
@@ -506,7 +506,7 @@ class FrmComTool(QObject, Ui_frmComTool):
             try:
                 Str_data = str(QBA_data, encoding='utf-8')
             except Exception:
-                self.ui.txtMain.appendPlainText("转字符串失败")
+                self.ui.txtMain.insertPlainText("转字符串失败")
                 return
 
         if len(Str_data) == 0:

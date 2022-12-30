@@ -1,6 +1,7 @@
 import re
 
 import numpy
+import numpy as np
 from PyQt6 import QtGui
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QLabel, QGridLayout
@@ -9,16 +10,39 @@ from sdk_src.utils import utils
 
 DistanceFilterMaxIndex = 8
 calculacy = 0.5
+
+BlockFilter_Max = 8
+BlockFilter_MaxTimes = 8
+
+
 class test_wave:
     def __init__(self, plot):
         self.lastState = "null"
         self.DistanceFilter = [0] * DistanceFilterMaxIndex
+
+        self.BlockFilter_Is_Generator = False
+        self.BlockFilter = [0] * BlockFilter_Max
+        self.BlockFilter_Max_Average = [0] * BlockFilter_Max
+        self.BlockFilter_Min_Average = [0] * BlockFilter_Max
+        self.BlockFilter_CurIndex = 0
+        self.BlockFilter_CurTimes = 0
+        self.BlockFilter_Max = 0
+        self.BlockFilter_Min = 0
+
         self.lastDistance = 3
         self.newDistance = 3
         self.dataReadyFlag = False
         # 静止持续次数
         self.occRxCount = 0
         self.occMaxTimes = 10
+
+        # 距离变化次数
+        self.serialInterval = 100
+        self.disNotChangeCount = 0
+        self.disChangeCount = 0
+        self.unmannedTime = 5000 # 毫秒 无人时间
+        self.mannedTime = 1000 # 毫秒 有人时间
+
 
         self.DistanceFilter_index = 0
 
@@ -41,7 +65,7 @@ class test_wave:
         self.layout.addWidget(self.label, 0, 0)
         self.layout.addWidget(self.label1, 1, 0)
         self.widget.setLayout(self.layout)
-        self.widget.show()
+        # self.widget.show()
 
     def split_log(self, f_line, f_head, f_tail):
         s_head = f_line.find(f_head)
@@ -89,41 +113,58 @@ class test_wave:
             self.DistanceFilter[self.DistanceFilter_index] = dis
             self.DistanceFilter_index += 1
 
+    # 单个区域干扰源过滤生成器
+    def blockArea_filter_generator(self, dis):
+        if self.BlockFilter_Is_Generator is False:
+            if self.BlockFilter_CurIndex < BlockFilter_Max:
+                # 存一组数据，一组8个数据
+                self.BlockFilter[self.BlockFilter_CurIndex] = dis
+                self.BlockFilter_CurIndex += 1
+            else:
+                if self.BlockFilter_CurIndex == BlockFilter_Max:
+                    # 处理一组数据
+                    self.BlockFilter_CurIndex = 0
+                    self.BlockFilter_Max_Average[self.BlockFilter_CurTimes] = max(self.BlockFilter)
+                    self.BlockFilter_Min_Average[self.BlockFilter_CurTimes] = max(self.BlockFilter)
+                    self.BlockFilter_CurTimes += 1
+
+            if self.BlockFilter_CurTimes == BlockFilter_MaxTimes:
+                # 收集8组数据，提取最大值与最小值
+                self.BlockFilter_Min = min(self.BlockFilter_Min_Average)
+                self.BlockFilter_Max = max(self.BlockFilter_Max_Average)
+                print(self.BlockFilter_Max, self.BlockFilter_Min)
+                self.BlockFilter_CurTimes = 0
+                self.BlockFilter_Is_Generator = True
+
+    def xijiewei_dis_handle(self, dis):
+        if self.lastDistance != dis:
+            self.lastDistance = dis
+            self.disChangeCount += 1
+            if self.disChangeCount * self.serialInterval > self.mannedTime:
+                self.disChangeCount = 0
+                if self.lastState != "move":
+                    self.lastState = "move"
+                    print(self.lastState)
+        else:
+            self.disNotChangeCount += 1
+            if self.disNotChangeCount * self.serialInterval > self.unmannedTime:
+                self.disNotChangeCount = 0
+                if self.lastState != "null":
+                    self.lastState = "null"
+                    print(self.lastState)
+
     # 硒杰微
     def xijiewei_serial_data_handle(self, string):
-        dis = self.split_log(string, "dis=", '\n')
-        if 'occ' in string:
-            self.occRxCount += 1
-            if self.occRxCount > self.occMaxTimes:
-                if self.lastState != 'occ':
-                    self.lastState = 'occ'
-                    self.event_triger("min")
-                elif self.lastState == 'null':
-                    self.lastState = 'occ'
-                    self.event_triger("on")
-                else:
-                    pass
-            else:
-                pass
+        disString = self.split_log(string, "dis=", '\n')
+        dis = float(disString)
+        if dis == -1:
+            return
+        self.blockArea_filter_generator(dis)
 
-        elif 'mov' in string:
-            if self.lastState == 'occ':
-                self.lastState = 'mov'
-                self.event_triger("max")
-            elif self.lastState == 'null':
-                self.lastState = 'mov'
-                self.event_triger("on")
-            else:
-                pass
-
-            self.getClose_or_farAway_select(float(dis))
-
-        elif 'null' in string:
-            if self.lastState != 'null':
-                self.lastState = 'null'
-                self.event_triger("off")
-
-        self.Myplot.update_plot(float(dis))
+        if self.BlockFilter_Is_Generator:
+            self.getClose_or_farAway_select(dis)
+            if dis > self.BlockFilter_Max or dis < self.BlockFilter_Min:
+                self.Myplot.update_point_plot(dis)
 
     def split_string(self, f_line, f_head, f_tail):
         s_head = f_line.find(f_head)
@@ -180,16 +221,18 @@ class test_wave:
         # self.Myplot.update_plot(float(hex_lists[3]))
 
     def serial_data_handle(self, string):
-        data_from = 2
+        data_from = 3
         if data_from == 1:  # 隔空
             self.gekong_serial_data_handle(string)
         elif data_from == 2:  # 典微
             self.dianwei_serial_data_handle(string)
+        elif data_from == 3:  # 杰微
+            self.xijiewei_serial_data_handle(string)
 
     def event_triger(self, event):
 
         mqtt_json = " "
-        print("cur state is " + event)
+        # print("cur state is " + event)
 
         if event == "on":
             mqtt_json = "{\
