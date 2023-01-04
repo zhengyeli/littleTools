@@ -88,7 +88,6 @@ class Mqtt_Utils:
             self.__del__()
             self.in_file = open(LOG_FILE_PATH + '/' + LOG_FILE_NAME, mode='r', encoding='ansi')
             self.out_file = open(LOG_FILE_PATH + '/' + DECODE_FILE_NAME, mode='w', encoding='utf-8')
-            self.allLine = self.in_file.readlines()
 
     def in_file_input(self, file_dir):
         self.__del__()
@@ -105,6 +104,8 @@ class Mqtt_Utils:
 
             self.in_file_dir = file_dir
             self.out_file_dir = out_file_dir
+
+            self.allLine = self.in_file.readlines()
         except FileNotFoundError:
             print("create input file " + LOG_FILE_NAME)
             self.in_file = open(file_dir, mode='w+', encoding='utf-8')
