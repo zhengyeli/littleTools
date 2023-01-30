@@ -185,24 +185,25 @@ def httpServer_recvGet_fileResponse(socket, filePath):
     else:
         win.ui.pte_serderInfo.append("找到文件 ：" + file_name)
         packSendSize = 1483
-        try:
-            data = f.read(packSendSize)
-            if data:
-                sleep(0.02)
-                try:
-                    socket.send(data)
-                except:
-                    win.ui.pte_serderInfo.append("发送中断！")
+        while True:
+            try:
+                data = f.read(packSendSize)
+                if data:
+                    sleep(0.02)
+                    try:
+                        socket.send(data)
+                    except:
+                        win.ui.pte_serderInfo.append("发送中断！")
+                        f.close()
+                        socket.close()
+                        return
+                else:
+                    win.ui.pte_serderInfo.append("文件已读取完...")
                     f.close()
                     socket.close()
                     return
-            else:
-                win.ui.pte_serderInfo.append("文件已读取完...")
-                f.close()
-                socket.close()
-                return
-        except:
-            win.ui.pte_serderInfo.append("unknow error ...")
+            except:
+                win.ui.pte_serderInfo.append("unknow error ...")
 
         f.close()
     socket.close()
