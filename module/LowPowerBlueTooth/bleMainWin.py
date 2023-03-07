@@ -3,6 +3,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMainWindow, QDockWidget, QTextEdit, QToolBar, QToolButton
 
 from module.LowPowerBlueTooth.api.deviceFinder import DeviceFinder
+from module.LowPowerBlueTooth.module.H5127 import H5127
 from module.LowPowerBlueTooth.module.blelinkwindow import blelinkwindow
 from module.LowPowerBlueTooth.module.bleuartwindow import bleUartWindow
 from module.LowPowerBlueTooth.module.blewifiwindow import blecConfigWifi
@@ -75,6 +76,7 @@ class BleMainWin(QMainWindow):
         self.bleLink = blelinkwindow(self)
         self.bleUart = bleUartWindow(self)
         self.bleWifi = blecConfigWifi(self)
+        self.H5127 = H5127(self)
 
         self.text_info.append("tip :\n"
                               "window function\n"
@@ -94,7 +96,8 @@ class BleMainWin(QMainWindow):
                              QDockWidget.DockWidgetFeature.DockWidgetMovable |
                              QDockWidget.DockWidgetFeature.DockWidgetFloatable)
 
-        self.DockWidgetInfo_btn_click()
+        self.DockWidgetInfo.setVisible(False)
+        # self.DockWidgetInfo_btn_click()
 
     def setInfo(self, string: str):
         if self.text_info:
@@ -159,4 +162,5 @@ class BleMainWin(QMainWindow):
 
     def ble_rx_data_func(self, bytesArray):
         self.setInfo("recv: " + utils.bytes2hexString(bytesArray))
+        self.H5127.ble_rx_data_func(bytesArray)
         self.bleLink.ble_rx_data_func(bytesArray)

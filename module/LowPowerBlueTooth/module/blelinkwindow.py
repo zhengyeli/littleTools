@@ -168,7 +168,7 @@ class blelinkwindow():
     def disconButton_clicked(self):
         if self.timer_keepAlive:
             self.timer_keepAlive.stop()
-        self.superClass.deviceHandler.disconnect()
+        self.superClass.deviceHandler.disconnectDevice()
         self.superClass.setInfo("disconnected.")
 
     def pauseButton_clicked(self):
@@ -190,6 +190,7 @@ class blelinkwindow():
         self.superClass.deviceFinder.connectToDevice(item.text())
 
     def bleDeviceConnectedOk(self, ok: bool):
+        print(ok)
         if ok and self.timer_keepAlive is not None:
             self.timer_keepAlive.start()
 

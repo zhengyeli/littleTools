@@ -37,6 +37,7 @@ class blecConfigWifi:
         self.text_Ssid = None
 
         self.form_init()
+        self.dockBleWifi.setVisible(False)
 
     def form_init(self):
         self.dockBleWifi = QDockWidget()
