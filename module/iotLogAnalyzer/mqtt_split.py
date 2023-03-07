@@ -183,6 +183,9 @@ class Mqtt_Utils:
 class Mqtt_Prase:
     utils = Mqtt_Utils()
     allLine = utils.allLine
+    cur_time = None
+    timeList = []
+    temperList = []
     sku = "H7160"
 
     def __init__(self):
@@ -219,6 +222,8 @@ class Mqtt_Prase:
                 if "717" in self.sku:
                     temper = base64_data[3] << 8 | base64_data[4]
                     self.utils.output_to_file('temper:' + str(temper) + "F")
+                    self.timeList.append(self.cur_time)
+                    self.temperList.append(temper / 100)
                 else:
                     humi = base64_data[3] << 16 | base64_data[4] << 8 | base64_data[5]
                     self.utils.output_to_file("ht: " + str(humi))
@@ -241,14 +246,15 @@ class Mqtt_Prase:
         if 'type' in self.log_dev_json:
             self.prase_general_info("type:", self.log_dev_json['type'])
 
-        if 'op' in self.log_dev_json:
-            self.prase_BLE_decode(self.log_dev_json['op']['command'])
-
         if 'state' in self.log_dev_json:
             self.prase_status_info(self.log_dev_json['state'])
 
         if 'timestamp' in self.log_dev_json:
             self.prase_timestamp_info(self.log_dev_json['timestamp'])
+            self.cur_time = (int(self.log_dev_json['timestamp'] / 1000))
+
+        if 'op' in self.log_dev_json:
+            self.prase_BLE_decode(self.log_dev_json['op']['command'])
 
     def prase_data_line_split_handle(self, file_line):
         if -1 != file_line.find("bizType"):

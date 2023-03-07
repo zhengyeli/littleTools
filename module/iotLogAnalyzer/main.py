@@ -4,6 +4,11 @@ from PyQt6.QtWidgets import QDockWidget, QWidget, QMainWindow
 from module.iotLogAnalyzer import mqtt_split as log_prase
 from module.iotLogAnalyzer.MTextEdit import MTextEdit
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import host_subplot
+
+from module.photograph.matplot import matplot
+
 
 def Log_Prase_Handle():
     C = log_prase.Mqtt_Prase()
@@ -12,6 +17,7 @@ def Log_Prase_Handle():
 
 class govee_mqtt_log:
     def __init__(self, handle):
+        self.board = None
         self.out_edit = None
         self.out_dock = None
         self.in_edit = None
@@ -55,8 +61,20 @@ class govee_mqtt_log:
         self.MainWindow.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.out_dock)
 
     def file_input(self, file_dir):
+        self.C.cur_time = 0
+        self.C.temperList.clear()
+        self.C.timeList.clear()
         self.C.prase_custom_file_set(file_dir)
         self.C.run_prase()
+        ######################
+        #        画图
+        if len(self.C.timeList) != 0:
+            self.board = matplot()
+            minTime = min(self.C.timeList)
+            timeList = list(map(lambda x: x - minTime, self.C.timeList))
+            self.board.plot(timeList, self.C.temperList)
+        ######################
+
         self.C.utils.__del__()
 
         self.out_edit.clear()
