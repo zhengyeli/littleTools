@@ -8,6 +8,7 @@ class BluetoothBaseClass(QObject):
         self.m_info = None
         self.m_error = None
         self.baseInfoShow = pbaseInfoShow
+        print(pbaseInfoShow)
 
     def error(self):
         return self.m_error

@@ -57,9 +57,9 @@ class DeviceHandler(BluetoothBaseClass):
             self.m_control.setRemoteAddressType(QLowEnergyController.RemoteAddressType.PublicAddress)
             self.m_control.serviceDiscovered.connect(self.serviceDiscovered)
             self.m_control.discoveryFinished.connect(self.serviceScanDone)
-            self.m_control.errorOccurred.connect(lambda: self.setError("Cannot connect to remote device."))
+            self.m_control.errorOccurred.connect(lambda: self.setInfo("Cannot connect to remote device."))
             self.m_control.connected.connect(self.connectSuccessful)
-            self.m_control.disconnected.connect(lambda: self.setError("LowEnergy controller disconnected."))
+            self.m_control.disconnected.connect(lambda: self.setInfo("LowEnergy controller disconnected."))
             self.m_control.connectToDevice()
 
     def connectSuccessful(self):

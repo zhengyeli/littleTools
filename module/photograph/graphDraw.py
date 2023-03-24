@@ -6,6 +6,9 @@ from PyQt6.QtCore import QTimer
 
 
 # 描绘静态数据
+from PyQt6.QtWidgets import QWidget, QGridLayout
+
+
 class BasicArrayPlot:
     def __init__(self, widget):
         self.plot = None
@@ -86,6 +89,7 @@ class BasicArrayPlot:
 
 class dynamicArrayPlot:
     def __init__(self, widget):
+
         self.win = pg.GraphicsLayoutWidget(widget, show=True, title="Basic plotting examples")
         self.win.setWindowTitle('pyqtgraph example: Plotting')
         self.win.setBackground('w')
@@ -93,7 +97,7 @@ class dynamicArrayPlot:
         pg.setConfigOptions(antialias=True)
         pg.setConfigOption('background', 'b')
         pg.setConfigOption('foreground', 'k')
-        if widget is not None:
+        if widget.layout() is not None:
             widget.layout().addWidget(self.win)
 
         # 3) Plot in chunks, adding one new plot curve for every 100 samples
@@ -157,7 +161,8 @@ class dynamicArrayPlot:
             curve = self.curves[-1]
         self.data5[i + 1, 0] = now - self.startTime
         self.data5[i + 1, 1] = point  # np.random.normal()
-        curve.setData(x=self.data5[:i + 2, 0], y=self.data5[:i + 2, 1], pen=pg.mkPen(None), symbol='o', symbolSize=5)
+        curve.setData(x=self.data5[:i + 2, 0], y=self.data5[:i + 2, 1], pen=(0, 0, 0))
+        # curve.setData(x=self.data5[:i + 2, 0], y=self.data5[:i + 2, 1], pen=pg.mkPen(None), symbol='o', symbolSize=5)
         self.ptr5 += 1
 
 
