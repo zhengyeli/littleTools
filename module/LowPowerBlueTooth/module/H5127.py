@@ -10,6 +10,7 @@ from sdk_src.utils import utils
 
 class H5127:
     def __init__(self, bleMainWindow):
+        self.label_pir = None
         self.log_distance1 = None
         self.logWidget1 = None
         self.logWidget = None
@@ -64,8 +65,15 @@ class H5127:
         font.setPointSize(50)
         self.label_distance.setFont(font)
 
+        self.label_pir = QLabel()
+        self.label_pir.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        font = self.label_pir.font()
+        font.setPointSize(50)
+        self.label_pir.setFont(font)
+
         self.gridlayout.addWidget(self.label_Status, 0, 0)
         self.gridlayout.addWidget(self.label_distance, 1, 0)
+        self.gridlayout.addWidget(self.label_pir, 2, 0)
 
         self.motherClass.creatNewDockWindow(self.dock, Qt.DockWidgetArea.TopDockWidgetArea)
         self.dock.setWidget(self.WidgetContents)
@@ -94,5 +102,9 @@ class H5127:
             self.label_Status.setStyleSheet("QLabel{background-color:rgb(0,125,125);}")
         distance = (Bytes[3] << 8) + Bytes[4]
         self.label_distance.setText(str(distance))
-        self.log_distance.append(str(distance))
+        self.log_distance.append(str(distance) + ',')
         self.plot.update_point_plot(distance)
+        if Bytes[5] == 1:
+            self.label_pir.setText("1")
+        else:
+            self.label_pir.setText("0")
