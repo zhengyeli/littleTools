@@ -102,9 +102,12 @@ class H5127:
             self.label_Status.setStyleSheet("QLabel{background-color:rgb(0,125,125);}")
         distance = (Bytes[3] << 8) + Bytes[4]
         self.label_distance.setText(str(distance))
-        self.log_distance.append(str(distance) + ',')
-        self.plot.update_point_plot(distance)
+
         if Bytes[5] == 1:
             self.label_pir.setText("1")
         else:
             self.label_pir.setText("0")
+
+        rawDistance = (Bytes[6] << 8) + Bytes[7]
+        self.log_distance.append(str(rawDistance) + ',')
+        self.plot.update_point_plot(rawDistance)

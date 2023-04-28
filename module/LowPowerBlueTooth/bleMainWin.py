@@ -76,7 +76,7 @@ class BleMainWin(QMainWindow):
         self.bleLink = blelinkwindow(self)
         self.bleUart = bleUartWindow(self)
         self.bleWifi = blecConfigWifi(self)
-        self.H5127 = H5127(self)
+        # self.H5127 = H5127(self)
 
         self.text_info.append("tip :\n"
                               "window function\n"

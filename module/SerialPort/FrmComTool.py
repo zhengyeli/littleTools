@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QAbs
 from module.SerialPort.AppConfig import AppConfig
 from module.SerialPort.QuickSend import blockItemList
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
+from module.SerialPort.mesure_main import chenzhong
 from module.test import test_wave
 from sdk_src.utils import utils
 
@@ -80,6 +81,8 @@ class FrmComTool(QObject, Ui_frmComTool):
         self.AppConfig = AppConfig()
         self.AppConfig.readConfig()
         self.comTool_config_init()
+
+        self.chenzhong = chenzhong(self)
 
         # self.w = QWidget()
         # layout = QVBoxLayout()
@@ -501,7 +504,7 @@ class FrmComTool(QObject, Ui_frmComTool):
         QBA_data = self.com.readAll()
 
         if self.AppConfig.HexReceive:
-            Str_data = utils.bytes2hex(bytes(QBA_data))
+            Str_data = utils.bytes2hexString(bytes(QBA_data))
         else:
             try:
                 Str_data = str(QBA_data, encoding='utf-8')
@@ -509,11 +512,15 @@ class FrmComTool(QObject, Ui_frmComTool):
                 self.ui.txtMain.insertPlainText("转字符串失败")
                 return
 
-        if len(Str_data) == 0:
-            return
+        # if len(Str_data) == 0:
+        #     return
+        # print(Str_data)
 
-        if test_wave_enable:
-            self.test.serial_data_handle(Str_data)
+        # if test_wave_enable:
+        #     self.test.serial_data_handle(Str_data)
+            
+        if 1:
+            self.chenzhong.process(Str_data)
 
         if "\b \b" in Str_data:  # backspace
             # 获取当前文本光标

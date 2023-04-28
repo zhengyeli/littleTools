@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import QTabBar, QMenu, QWidget, QFileDialog
 
 from Ui_MainWindow import Ui_MainWindow
 from module.LowPowerBlueTooth.bleMainWin import BleMainWin
+from module.Mqtt.pahoMqttClient import govee_mqtt_client
 from module.SerialPort.FrmComTool import FrmComTool
 from module.SerialPort.Ui_frmComTool import Ui_frmComTool
 from module.iotLogAnalyzer.main import govee_mqtt_log
@@ -146,16 +147,20 @@ class MainWindow(QObject, Ui_MainWindow):
                 sys.exit()
 
     def module_init(self):
-        self.module_photoGraph_init()
+        # self.module_photoGraph_init()
         self.module_serialports_init()
-        self.module_lowPowerBle_init()
-        self.module_logAnalyse_init()
-        self.module_ota_init()
+        # self.module_lowPowerBle_init()
+        # self.module_logAnalyse_init()
+        # self.module_ota_init()
+        # self.module_mqtt_init()
 
     def module_ota_init(self):
         self.actionOta = QAction(QIcon(QPixmap(":/src/2.png")), "Govee ota")
         self.menuSetting.addAction(self.actionOta)
         self.actionOta.triggered.connect(self.module_ota_start)
+
+    def module_mqtt_init(self):
+        govee_mqtt_client()
 
     def module_ota_start(self):
         # pass

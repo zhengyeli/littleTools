@@ -12,8 +12,8 @@ ca_cert = 'D:\\智岩科技有限公司\\公司工具及文件\\IOT TEST\\rootCA
 keyfile = 'D:\\智岩科技有限公司\\公司工具及文件\\IOT TEST\\b2f000de59-private.pem.key'
 certPath = 'D:\\智岩科技有限公司\\公司工具及文件\\IOT TEST\\b2f000de59-certificate.pem.crt'
 
-hubTopicPublish = 'GD/bb88a07bdd61754adbb03b5d6c564f67'
-hubTopicSubscribe = 'GD/bb88a07bdd61754adbb03b5d6c564f67'
+hubTopicPublish = 'GD/737f85161d5afbc02a4927bcdff76181'
+hubTopicSubscribe = 'GA/5a508ccad2bd3f27d35efa8cb467ef40'
 
 
 class govee_mqtt_client:
@@ -31,8 +31,7 @@ class govee_mqtt_client:
         self.client.subscribe(hubTopicSubscribe)
 
     def on_message(self, client, userdata, msg):
-        pass
-        # print("{0} - {1} ".format(msg.topic, str(msg.payload)))
+        print("{0} - {1} ".format(msg.topic, str(msg.payload)))
 
     def generate_sas_token(self, uri, key, expiry=3600):
         ttl = int(time.time()) + expiry
